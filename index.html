@@ -399,13 +399,6 @@
             </svg>
             選擇相片
           </button>
-          <button id="takePictureBtn" class="btn-secondary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 9C3 7.89543 3.89543 7 5 7H5.92963C6.59834 7 7.2228 6.6658 7.59373 6.1094L8.40627 4.8906C8.7772 4.3342 9.40166 4 10.0704 4H13.9296C14.5983 4 15.2228 4.3342 15.5937 4.8906L16.4063 6.1094C16.7772 6.6658 17.4017 7 18.0704 7H19C20.1046 7 21 7.89543 21 9V18C21 19.1046 20.1046 20 19 20H5C3.89543 20 3 19.1046 3 18V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            拍攝照片
-          </button>
         </div>
         <input type="file" id="imgInput" accept="image/*" style="display:none;" />
       </div>
@@ -991,6 +984,9 @@
     function loadImageFromFile(file) {
       if (!file) return;
       
+      // 重置所有分析數據
+      resetAllData();
+      
       const reader = new FileReader();
       
       reader.onload = function(e) {
@@ -1019,6 +1015,29 @@
       };
       
       reader.readAsDataURL(file);
+    }
+    
+    // 重置所有分析數據
+    function resetAllData() {
+      // 清空校正點
+      calibrationPoints = [];
+      calibration = null;
+      regressionConfirmed = false;
+      regressionResult.textContent = "尚未校正";
+      updateCalibrationTable();
+      
+      // 清空圖表
+      Plotly.purge("plot");
+      Plotly.purge("wavelengthPlot");
+      
+      // 重置背景圖狀態
+      backgroundImageOn = false;
+      toggleBackgroundBtn.textContent = "🖼 加入背景圖";
+      toggleBackgroundBtn.classList.add("btn-outline");
+      toggleBackgroundBtn.classList.remove("btn-danger");
+      
+      // 清空波長輸入框
+      wavelengthInput.value = "";
     }
     
     // 處理加載好的圖片
@@ -1252,118 +1271,9 @@
       }, { passive: false });
     }
     
-    // 相機整合 - 拍攝圖片
+    // 相機整合功能已移除
     function setupCameraIntegration() {
-      // 檢查是否支援getUserMedia
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        takePictureBtn.addEventListener('click', () => {
-          // 創建相機元素
-          const videoElement = document.createElement('video');
-          videoElement.setAttribute('autoplay', '');
-          videoElement.setAttribute('playsinline', '');
-          videoElement.style.display = 'none';
-          document.body.appendChild(videoElement);
-          
-          // 創建拍照界面
-          const cameraContainer = document.createElement('div');
-          cameraContainer.style.position = 'fixed';
-          cameraContainer.style.top = '0';
-          cameraContainer.style.left = '0';
-          cameraContainer.style.width = '100%';
-          cameraContainer.style.height = '100%';
-          cameraContainer.style.backgroundColor = 'black';
-          cameraContainer.style.zIndex = '10000';
-          cameraContainer.style.display = 'flex';
-          cameraContainer.style.flexDirection = 'column';
-          
-          const cameraPreview = document.createElement('div');
-          cameraPreview.style.flex = '1';
-          cameraPreview.style.position = 'relative';
-          cameraPreview.style.overflow = 'hidden';
-          
-          const cameraVideo = document.createElement('video');
-          cameraVideo.setAttribute('autoplay', '');
-          cameraVideo.setAttribute('playsinline', '');
-          cameraVideo.style.width = '100%';
-          cameraVideo.style.height = '100%';
-          cameraVideo.style.objectFit = 'cover';
-          
-          const cameraControls = document.createElement('div');
-          cameraControls.style.padding = '20px';
-          cameraControls.style.display = 'flex';
-          cameraControls.style.justifyContent = 'space-around';
-          cameraControls.style.backgroundColor = 'rgba(0,0,0,0.7)';
-          
-          const cancelButton = document.createElement('button');
-          cancelButton.textContent = '取消';
-          cancelButton.classList.add('btn-danger');
-          
-          const captureButton = document.createElement('button');
-          captureButton.textContent = '拍攝';
-          captureButton.classList.add('btn-secondary');
-          
-          cameraControls.appendChild(cancelButton);
-          cameraControls.appendChild(captureButton);
-          
-          cameraPreview.appendChild(cameraVideo);
-          cameraContainer.appendChild(cameraPreview);
-          cameraContainer.appendChild(cameraControls);
-          
-          document.body.appendChild(cameraContainer);
-          
-          // 請求相機權限
-          navigator.mediaDevices.getUserMedia({ 
-            video: { 
-              facingMode: 'environment', // 使用後置相機
-              width: { ideal: 1920 },
-              height: { ideal: 1080 }
-            } 
-          })
-          .then(function(stream) {
-            videoElement.srcObject = stream;
-            cameraVideo.srcObject = stream;
-            
-            // 拍照按鈕事件
-            captureButton.addEventListener('click', () => {
-              const tempCanvas = document.createElement('canvas');
-              tempCanvas.width = cameraVideo.videoWidth;
-              tempCanvas.height = cameraVideo.videoHeight;
-              const tempCtx = tempCanvas.getContext('2d');
-              
-              // 繪製視頻幀到canvas
-              tempCtx.drawImage(cameraVideo, 0, 0);
-              
-              // 將canvas轉換為Blob
-              tempCanvas.toBlob((blob) => {
-                // 創建一個File對象
-                const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
-                
-                // 加載圖片
-                loadImageFromFile(file);
-                
-                // 清理
-                stream.getTracks().forEach(track => track.stop());
-                document.body.removeChild(cameraContainer);
-                document.body.removeChild(videoElement);
-              }, 'image/jpeg', 0.95);
-            });
-            
-            // 取消按鈕事件
-            cancelButton.addEventListener('click', () => {
-              stream.getTracks().forEach(track => track.stop());
-              document.body.removeChild(cameraContainer);
-              document.body.removeChild(videoElement);
-            });
-          })
-          .catch(function(error) {
-            showNotification('無法存取相機: ' + error.message, 'error');
-            document.body.removeChild(cameraContainer);
-            document.body.removeChild(videoElement);
-          });
-        });
-      } else {
-        takePictureBtn.style.display = 'none';
-      }
+      // 此功能已停用
     }
     
     // 事件監聽器
@@ -1373,7 +1283,15 @@
         imgInput.click();
       });
       
-      imgInput.addEventListener("change", e => loadImageFromFile(e.target.files[0]));
+      // 檔案匯入事件 - 清空之前的值並重載新圖片
+      imgInput.addEventListener("change", e => {
+        if (e.target.files && e.target.files[0]) {
+          loadImageFromFile(e.target.files[0]);
+          
+          // 重置input值，這樣即使選擇相同檔案也會觸發change事件
+          e.target.value = '';
+        }
+      });
       
       // 滑桿事件
       xStartSlider.addEventListener("input", syncSliderValues);
@@ -1458,8 +1376,11 @@
       setupCanvas();
       setupEventListeners();
       setupGestureEvents();
-      setupCameraIntegration();
-      loadDataFromLocalStorage();
+      // 移除相機整合功能
+      // setupCameraIntegration();
+      
+      // 不從本地存儲加載數據，確保每次都是全新狀態
+      // loadDataFromLocalStorage();
       
       // 定期保存數據
       setInterval(saveDataToLocalStorage, 30000); // 每30秒自動保存
@@ -1585,9 +1506,22 @@
       }
     }
     
+    // 添加版本信息顯示
+    function showVersionInfo() {
+      const versionDiv = document.createElement('div');
+      versionDiv.style.textAlign = 'center';
+      versionDiv.style.marginTop = '20px';
+      versionDiv.style.fontSize = '12px';
+      versionDiv.style.color = '#666';
+      versionDiv.innerHTML = '光譜分析工具 v1.1 - 每次匯入新照片時自動重置所有數據';
+      
+      document.querySelector('.container').appendChild(versionDiv);
+    }
+    
     // 初始化應用
     setupOfflineSupport();
     initApp();
+    showVersionInfo();
   </script>
 </body>
 </html>

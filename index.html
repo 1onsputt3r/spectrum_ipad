@@ -781,35 +781,47 @@
     
     // 重置數據
     function resetData() {
-      // 清空校正點
       calibPoints = [];
       calibration = null;
       regressConfirmed = false;
       elems.regressResult.textContent = "尚未校正";
       updateCalibTable();
-      
-      // 清空圖表
+
       Plotly.purge("plot");
       Plotly.purge("wavelengthPlot");
-      
-      // 重置顯示狀態
+
       elems.plotEmpty.style.display = "block";
       elems.plotCtr.style.display = "none";
       elems.waveplotEmpty.style.display = "block";
       elems.waveplotCtr.style.display = "none";
-      
-      // 重置背景狀態
+
       bgImageOn = false;
       elems.toggleBgBtn.textContent = "🖼 加入背景圖";
       elems.toggleBgBtn.classList.add("btn-outline");
       elems.toggleBgBtn.classList.remove("btn-danger");
-      
-      // 清空波長輸入
+
       elems.wavelengthInput.value = "";
-      
-      // 更新按鈕狀態
+
+      // 🔽 新增這一段
+      elems.exportedParams.innerHTML = "";
+      elems.exportedParams.style.display = "none";
+
+      elems.xStartVal.textContent = "00000";
+      elems.xEndVal.textContent = "00100";
+      elems.xCalibrateVal.textContent = "00050";
+
+      elems.xStart.value = 0;
+      elems.xEnd.value = width - 1;
+      elems.xCalibrate.value = Math.floor((width - 1) / 2);
+
+      const tbody = document.querySelector("#calibrationTable tbody");
+      tbody.innerHTML = "";
+
+      elems.exportBtn.disabled = true;
+
       updateButtonStates();
     }
+
     
     // 更新按鈕狀態
     function updateButtonStates() {

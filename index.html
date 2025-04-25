@@ -464,8 +464,10 @@
           responsive: true,
           toImageButtonOptions: {
             format: 'png',
-            filename: 'spectrum_intensity',
-            scale: 2
+            filename: 'spectrum_wavelength.png', // 添加副檔名
+            scale: 2,
+            width: 1200,
+            height: 800
           },
           modeBarButtonsToRemove: [
             'lasso2d',
@@ -649,8 +651,10 @@
         responsive: true,
         toImageButtonOptions: {
           format: 'png',
-          filename: 'spectrum_wavelength',
-          scale: 2
+          filename: 'spectrum_intensity.png', // 添加副檔名
+          scale: 2,
+          width: 1200,
+          height: 800
         },
         modeBarButtonsToRemove: [
           'lasso2d',
@@ -945,16 +949,46 @@
           csv += `${i+1},${p.pixel},${p.wavelength.toFixed(6)}\n`;
         });
         
-        // 下載CSV
+        // 針對 iOS 優化的下載方法
+        const filename = "spectrum_parameters.csv";
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "spectrum_parameters.csv";
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+
+        // 檢測是否為 iOS 裝置
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        if (isIOS) {
+          // iOS 裝置專用下載方法
+          const reader = new FileReader();
+          reader.onload = function() {
+            const link = document.createElement('a');
+            link.href = reader.result;
+            link.download = filename;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            
+            // 設置額外的屬性來幫助識別檔案類型
+            link.setAttribute('type', 'text/csv');
+            link.setAttribute('data-downloadurl', ['text/csv', filename, link.href].join(':'));
+            
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => document.body.removeChild(link), 100);
+          };
+          reader.readAsDataURL(blob);
+        } else {
+          // 其他裝置的標準下載方法
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
+        }
         
         notify("CSV檔案已下載", "success");
       };
@@ -972,7 +1006,7 @@
     }
     
     // 顯示通知
-    function notify(message, type = "info") {
+    function notify(message, type = "info", duration = 2000) {
       const notification = document.createElement("div");
       notification.textContent = message;
       notification.style.cssText = `
@@ -997,7 +1031,7 @@
         notification.style.opacity = "0";
         notification.style.transition = "opacity 0.5s ease";
         setTimeout(() => document.body.removeChild(notification), 500);
-      }, 2000);
+      }, duration);
     }
     
     // 設置多點觸控
@@ -1169,16 +1203,91 @@
       setupEvents();
       setupGestures();
       updateButtonStates();
+
+      // 增強 Plotly 在 iOS 上的下載功能
+      enhancePlotlyForIOS();
       
       // 顯示版本信息
       const versionDiv = document.createElement('div');
       versionDiv.style.cssText = 'text-align:center;margin-top:20px;font-size:12px;color:#666;';
-      versionDiv.innerHTML = '光譜分析工具 v1.7 - 效能優化';
+      versionDiv.innerHTML = '光譜分析工具 v1.8 - iOS/iPad 優化版';
       document.querySelector('.container').appendChild(versionDiv);
     }
     
     // 啟動應用
     init();
+
+    // 為 iOS 裝置增強 Plotly 圖表下載功能
+    function enhancePlotlyForIOS() {
+      // 檢測是否為 iOS 裝置
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      
+      if (isIOS) {
+        // 覆蓋 Plotly 的下載函數，使其在 iOS 上能正確處理檔案副檔名
+        if (window.Plotly && window.Plotly.downloadImage) {
+          const originalDownloadImage = window.Plotly.downloadImage;
+          
+          window.Plotly.downloadImage = function(gd, opts) {
+            if (!opts.filename.includes('.')) {
+              // 確保檔案名稱有適當的副檔名
+              opts.filename = opts.filename + '.' + opts.format;
+            }
+            
+            // 對於 iOS，使用我們自己的方法下載
+            const format = opts.format || 'png';
+            const width = opts.width || 700;
+            const height = opts.height || 450;
+            const filename = opts.filename || 'plot.' + format;
+            
+            // 獲取圖表圖像
+            Plotly.toImage(gd, {format: format, width: width, height: height})
+              .then(function(dataUrl) {
+                // 使用我們的 iOS 友好方法下載圖片
+                downloadForIOS(dataUrl, filename, 'image/' + format);
+              })
+              .catch(function(err) {
+                console.error('轉換圖表為圖像時發生錯誤:', err);
+                // 如果我們的方法失敗，嘗試原始方法
+                originalDownloadImage(gd, opts);
+              });
+          };
+        }
+      }
+    }
+
+    // 針對 iOS 的下載助手函數
+    function downloadForIOS(dataUrl, filename, mimeType) {
+      // 創建一個可見的下載連結
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = filename;
+      link.type = mimeType;
+      link.target = '_blank';
+      link.setAttribute('data-downloadurl', [mimeType, filename, dataUrl].join(':'));
+      link.style.position = 'fixed';
+      link.style.top = '10px';
+      link.style.right = '10px';
+      link.style.zIndex = '9999';
+      link.style.padding = '10px';
+      link.style.background = 'rgba(0,0,0,0.7)';
+      link.style.color = 'white';
+      link.style.borderRadius = '5px';
+      link.style.textDecoration = 'none';
+      link.style.fontWeight = 'bold';
+      link.textContent = '點擊下載 ' + filename;
+      
+      document.body.appendChild(link);
+      
+      // 提示用戶點擊下載
+      notify('請點擊右上角的下載按鈕', 'info', 5000);
+      
+      // 5秒後自動移除下載按鈕
+      setTimeout(() => {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link);
+        }
+      }, 5000);
+    }
   </script>
 </body>
 </html>

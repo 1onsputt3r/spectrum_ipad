@@ -1,24 +1,19 @@
 const CACHE_NAME = 'spectrum-ipad-cache-v1';
+
 const urlsToCache = [
   '/spectrum_ipad/',
   '/spectrum_ipad/index.html',
+  '/spectrum_ipad/style.css',
   '/spectrum_ipad/script.js',
-  '/spectrum_ipad/spectrum.js',
-  '/spectrum_ipad/styles.css',
+  '/spectrum_ipad/icon.png',
+  '/spectrum_ipad/offline-test.html'
 ];
 
-self.addEventListener('install', event => {
+self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
-  );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    caches.open(CACHE_NAME)
+      .then(function(cache) {
+        return cache.addAll(urlsToCache);
+      })
   );
 });

@@ -1228,28 +1228,37 @@
           const originalDownloadImage = window.Plotly.downloadImage;
           
           window.Plotly.downloadImage = function(gd, opts) {
+            // 強制設置檔案名稱和格式
             if (!opts.filename.includes('.')) {
-              // 確保檔案名稱有適當的副檔名
               opts.filename = opts.filename + '.' + opts.format;
             }
             
-            // 對於 iOS，使用我們自己的方法下載
-            const format = opts.format || 'png';
-            const width = opts.width || 700;
-            const height = opts.height || 450;
-            const filename = opts.filename || 'plot.' + format;
+            // 固定使用 PNG 格式
+            opts.format = 'png';
+            const format = 'png';
+            const width = opts.width || 1200;
+            const height = opts.height || 800;
+            const filename = opts.filename || 'plot.png';
             
             // 獲取圖表圖像
             Plotly.toImage(gd, {format: format, width: width, height: height})
               .then(function(dataUrl) {
                 // 使用我們的 iOS 友好方法下載圖片
-                downloadForIOS(dataUrl, filename, 'image/' + format);
+                downloadForIOS(dataUrl, filename, 'image/png');
               })
               .catch(function(err) {
                 console.error('轉換圖表為圖像時發生錯誤:', err);
-                // 如果我們的方法失敗，嘗試原始方法
-                originalDownloadImage(gd, opts);
+                try {
+                  // 如果我們的方法失敗，嘗試原始方法
+                  originalDownloadImage(gd, opts);
+                } catch (e) {
+                  console.error('原始下載方法也失敗:', e);
+                  notify('下載圖片失敗，請嘗試截圖保存', 'error');
+                }
               });
+              
+            // 阻止原始下載行為
+            return false;
           };
         }
       }
@@ -1257,6 +1266,9 @@
 
     // 針對 iOS 的下載助手函數
     function downloadForIOS(dataUrl, filename, mimeType) {
+      // 檢查檔案類型
+      const isImage = mimeType.startsWith('image/');
+      
       // 創建一個可見的下載連結
       const link = document.createElement('a');
       link.href = dataUrl;
@@ -1264,29 +1276,105 @@
       link.type = mimeType;
       link.target = '_blank';
       link.setAttribute('data-downloadurl', [mimeType, filename, dataUrl].join(':'));
-      link.style.position = 'fixed';
-      link.style.top = '10px';
-      link.style.right = '10px';
-      link.style.zIndex = '9999';
-      link.style.padding = '10px';
-      link.style.background = 'rgba(0,0,0,0.7)';
-      link.style.color = 'white';
-      link.style.borderRadius = '5px';
-      link.style.textDecoration = 'none';
-      link.style.fontWeight = 'bold';
-      link.textContent = '點擊下載 ' + filename;
       
-      document.body.appendChild(link);
-      
-      // 提示用戶點擊下載
-      notify('請點擊右上角的下載按鈕', 'info', 5000);
-      
-      // 5秒後自動移除下載按鈕
-      setTimeout(() => {
-        if (document.body.contains(link)) {
-          document.body.removeChild(link);
+      // 如果是圖片，直接在新窗口中打開，用戶可以保存
+      if (isImage) {
+        // 創建一個臨時 iframe 來顯示圖片下載頁面
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        // 創建一個簡單的 HTML 頁面，顯示圖片並提供下載說明
+        const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>下載圖片 - ${filename}</title>
+            <style>
+              body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; text-align: center; }
+              .container { max-width: 800px; margin: 0 auto; }
+              img { max-width: 100%; border: 1px solid #ddd; margin: 20px 0; }
+              .note { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+              h1 { font-size: 24px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>圖片下載 - ${filename}</h1>
+              <div class="note">
+                <p><strong>請長按下方圖片</strong>，然後選擇「加入照片」或「儲存圖片」來保存此圖片。</p>
+              </div>
+              <img src="${dataUrl}" alt="${filename}" />
+            </div>
+          </body>
+          </html>
+        `;
+        
+        // 打開新窗口並寫入 HTML
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.write(html);
+          win.document.close();
+          
+          // 通知用戶
+          notify('新窗口已打開，請按照指示保存圖片', 'info', 5000);
+        } else {
+          // 如果無法打開新窗口，嘗試使用通用方法
+          link.style.position = 'fixed';
+          link.style.top = '10px';
+          link.style.right = '10px';
+          link.style.zIndex = '9999';
+          link.style.padding = '10px';
+          link.style.background = 'rgba(0,0,0,0.7)';
+          link.style.color = 'white';
+          link.style.borderRadius = '5px';
+          link.style.textDecoration = 'none';
+          link.style.fontWeight = 'bold';
+          link.textContent = '點擊下載 ' + filename;
+          
+          document.body.appendChild(link);
+          notify('請點擊右上角的下載按鈕', 'info', 5000);
+          
+          // 5秒後自動移除下載按鈕
+          setTimeout(() => {
+            if (document.body.contains(link)) {
+              document.body.removeChild(link);
+            }
+          }, 5000);
         }
-      }, 5000);
+        
+        // 清除 iframe
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1000);
+      } else {
+        // 非圖片檔案使用原來的方法
+        link.style.position = 'fixed';
+        link.style.top = '10px';
+        link.style.right = '10px';
+        link.style.zIndex = '9999';
+        link.style.padding = '10px';
+        link.style.background = 'rgba(0,0,0,0.7)';
+        link.style.color = 'white';
+        link.style.borderRadius = '5px';
+        link.style.textDecoration = 'none';
+        link.style.fontWeight = 'bold';
+        link.textContent = '點擊下載 ' + filename;
+        
+        document.body.appendChild(link);
+        notify('請點擊右上角的下載按鈕', 'info', 5000);
+        
+        // 5秒後自動移除下載按鈕
+        setTimeout(() => {
+          if (document.body.contains(link)) {
+            document.body.removeChild(link);
+          }
+        }, 5000);
+      }
     }
   </script>
 </body>

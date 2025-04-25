@@ -477,6 +477,9 @@
       
       // 啟用校正按鈕
       elems.addPointBtn.disabled = false;
+
+      // 在創建圖表後設置自定義下載按鈕
+      setTimeout(() => setupCustomDownloadButton('plot', 'spectrum_intensity.png'), 500);
     }
     
     // 更新校正表格
@@ -723,6 +726,8 @@
         elems.toggleBgBtn.classList.add("btn-outline");
         elems.toggleBgBtn.classList.remove("btn-danger");
       }
+      // 在創建圖表後設置自定義下載按鈕
+      setTimeout(() => setupCustomDownloadButton('wavelengthPlot', 'spectrum_wavelength.png'), 500);
     }
     
     // 圖片加載處理
@@ -1205,8 +1210,6 @@
       versionDiv.style.cssText = 'text-align:center;margin-top:20px;font-size:12px;color:#666;';
       versionDiv.innerHTML = '光譜分析工具 v1.8 - 檔案下載優化版';
       document.querySelector('.container').appendChild(versionDiv);
-      // 設置自定義下載按鈕
-      setupCustomDownloadButtons();
     }
     
     function setupCustomDownloadButtons() {
@@ -1325,7 +1328,27 @@
           alert('無法生成圖像，請稍後再試。');
         });
     }
-
+    // 設置單個圖表的自定義下載按鈕
+    function setupCustomDownloadButton(plotId, filename) {
+      try {
+        const plotElement = document.getElementById(plotId);
+        if (!plotElement) return;
+        
+        const downloadBtn = plotElement.querySelector('.modebar-btn[data-title="Download plot as a png"]');
+        if (downloadBtn) {
+          // 覆蓋原始點擊事件
+          downloadBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            customDownloadPlot(plotId, filename);
+            return false;
+          };
+          console.log(`成功設定 ${plotId} 的下載按鈕`);
+        }
+      } catch (err) {
+        console.error('設置下載按鈕時發生錯誤:', err);
+      }
+    }
     // 啟動應用
     init();
 

@@ -28,6 +28,17 @@
     justify-content: center; /* 按鈕內容置中 */
   }
   </style>
+  <!-- PWA 基本元標籤 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <!-- 引用 manifest.json -->
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- 引用 Service Worker 註冊腳本 -->
+  <script src="./sw-register.js"></script>
 </head>
 
 <body>

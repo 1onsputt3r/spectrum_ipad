@@ -1205,10 +1205,130 @@
       versionDiv.style.cssText = 'text-align:center;margin-top:20px;font-size:12px;color:#666;';
       versionDiv.innerHTML = '光譜分析工具 v1.8 - 檔案下載優化版';
       document.querySelector('.container').appendChild(versionDiv);
+      // 設置自定義下載按鈕
+      setupCustomDownloadButtons();
     }
     
+    function setupCustomDownloadButtons() {
+      // 等待 Plotly 圖表完全加載
+      setTimeout(() => {
+        // 處理強度圖的下載按鈕
+        const intensityPlot = document.getElementById('plot');
+        if (intensityPlot && intensityPlot.querySelector) {
+          const downloadBtn = intensityPlot.querySelector('.modebar-btn[data-title="Download plot as a png"]');
+          if (downloadBtn) {
+            // 覆蓋原始點擊事件
+            downloadBtn.onclick = function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              customDownloadPlot('plot', 'spectrum_intensity.png');
+              return false;
+            };
+          }
+        }
+        
+        // 處理波長圖的下載按鈕
+        const wavelengthPlot = document.getElementById('wavelengthPlot');
+        if (wavelengthPlot && wavelengthPlot.querySelector) {
+          const downloadBtn = wavelengthPlot.querySelector('.modebar-btn[data-title="Download plot as a png"]');
+          if (downloadBtn) {
+            // 覆蓋原始點擊事件
+            downloadBtn.onclick = function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              customDownloadPlot('wavelengthPlot', 'spectrum_wavelength.png');
+              return false;
+            };
+          }
+        }
+      }, 1000); // 給予足夠時間加載圖表
+    }
+
+    // 自定義圖表下載函數
+    function customDownloadPlot(plotId, filename) {
+      const plotElement = document.getElementById(plotId);
+      if (!plotElement) return;
+      
+      // 使用 Plotly API 生成高質量圖像
+      Plotly.toImage(plotElement, {format: 'png', width: 1200, height: 800, scale: 2})
+        .then(function(dataUrl) {
+          // 創建新頁面展示圖像並提供下載說明
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+            const html = `
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${filename}</title>
+                <style>
+                  body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; text-align: center; }
+                  .container { max-width: 1000px; margin: 0 auto; }
+                  img { max-width: 100%; border: 1px solid #ddd; margin: 20px 0; }
+                  .instructions { background: #f4f4f4; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; }
+                  h1 { font-size: 24px; }
+                  .download-btn { 
+                    display: inline-block; 
+                    background: #3b82f6; 
+                    color: white; 
+                    padding: 12px 24px; 
+                    border-radius: 8px; 
+                    text-decoration: none;
+                    font-weight: bold;
+                    margin: 10px 0;
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <h1>光譜圖片檔案：${filename}</h1>
+                  
+                  <div class="instructions">
+                    <h3>iPad 保存圖片方法：</h3>
+                    <p>1. <strong>長按下方圖片</strong>，在選單中選擇「加入照片」</p>
+                    <p>2. 或點擊下方的「下載圖片」按鈕，然後從「檔案」App 中存取</p>
+                  </div>
+                  
+                  <a href="${dataUrl}" download="${filename}" class="download-btn">下載圖片 (${filename})</a>
+                  
+                  <img src="${dataUrl}" alt="${filename}" />
+                  
+                  <a href="${dataUrl}" download="${filename}" class="download-btn">下載圖片 (${filename})</a>
+                </div>
+                
+                <script>
+                  // 自動下載嘗試
+                  setTimeout(function() {
+                    const link = document.createElement('a');
+                    link.href = "${dataUrl}";
+                    link.download = "${filename}";
+                    link.type = "image/png";
+                    link.target = "_blank";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }, 500);
+                </script>
+              </body>
+              </html>
+            `;
+            
+            newWindow.document.write(html);
+            newWindow.document.close();
+          } else {
+            alert('無法打開新視窗。請檢查瀏覽器的彈窗設定。');
+          }
+        })
+        .catch(function(err) {
+          console.error('生成圖像時發生錯誤:', err);
+          alert('無法生成圖像，請稍後再試。');
+        });
+    }
+
     // 啟動應用
     init();
+
 
   </script>
 </body>

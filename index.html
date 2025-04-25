@@ -5,405 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>iPad光譜分析工具</title>
+  <title>光譜分析</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
-    :root {
-      --primary-color: #3b82f6;
-      --primary-dark: #2563eb;
-      --secondary-color: #22c55e;
-      --secondary-dark: #16a34a;
-      --danger-color: #ef4444;
-      --danger-dark: #dc2626;
-      --background-color: #f8fafc;
-      --text-color: #0f172a;
-      --border-color: #cbd5e1;
-      --border-radius: 10px;
-      --safe-area-inset-top: env(safe-area-inset-top, 0px);
-      --safe-area-inset-bottom: env(safe-area-inset-bottom, 20px);
-    }
-    
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: var(--background-color);
-      color: var(--text-color);
-      overscroll-behavior-y: none;
-      touch-action: manipulation;
-      padding: 0 12px;
-      padding-top: calc(var(--safe-area-inset-top) + 12px);
-      padding-bottom: calc(var(--safe-area-inset-bottom) + 12px);
-    }
-    
-    .container {
-      max-width: 100%;
-      margin: 0 auto;
-      padding-bottom: 30px;
-    }
-    
-    .header {
-      text-align: center;
-      padding: 15px 0;
-      margin-bottom: 20px;
-      position: sticky;
-      top: 0;
-      background-color: var(--background-color);
-      z-index: 10;
-    }
-    
-    h1 {
-      font-size: 24px;
-      margin: 0;
-      font-weight: 600;
-    }
-    
-    .canvas-container {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto 20px auto;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      border-radius: var(--border-radius);
-      overflow: hidden;
-    }
-    
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: var(--border-radius);
-      touch-action: none;
-    }
-    
-    .input-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      gap: 10px;
-    }
-    
-    .file-input-wrapper {
-      display: flex;
-      width: 100%;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .file-buttons {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .section {
-      background-color: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: var(--border-radius);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-    
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-top: 0;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    
-    .slider-container {
-      margin-bottom: 15px;
-    }
-    
-    .slider-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-    
-    .slider-value {
-      font-family: monospace;
-      background-color: var(--background-color);
-      padding: 5px 8px;
-      border-radius: 5px;
-      font-weight: normal;
-    }
-    
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 10px;
-      border-radius: 5px;
-      background-color: #e2e8f0;
-      outline: none;
-      transition: background 0.2s;
-    }
-    
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: var(--primary-color);
-      cursor: pointer;
-      border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      transition: background 0.2s;
-    }
-    
-    input[type="range"]::-webkit-slider-thumb:active {
-      background: var(--primary-dark);
-      transform: scale(1.1);
-    }
-    
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-    
-    button {
-      -webkit-appearance: none;
-      appearance: none;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      font-weight: 500;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      flex: 1 0 auto;
-      min-width: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-    
-    button:active {
-      background-color: var(--primary-dark);
-      transform: translateY(1px);
-    }
-    
-    .btn-secondary {
-      background-color: var(--secondary-color);
-    }
-    
-    .btn-secondary:active {
-      background-color: var(--secondary-dark);
-    }
-    
-    .btn-danger {
-      background-color: var(--danger-color);
-    }
-    
-    .btn-danger:active {
-      background-color: var(--danger-dark);
-    }
-    
-    .btn-outline {
-      background-color: transparent;
-      color: var(--primary-color);
-      border: 2px solid var(--primary-color);
-    }
-    
-    .btn-outline:active {
-      background-color: rgba(59, 130, 246, 0.1);
-    }
-    
-    .btn-icon {
-      width: 44px;
-      min-width: auto;
-      padding: 10px;
-    }
-    
-    .plot-container {
-      width: 100%;
-      height: 300px;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    
-    .calibration-form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-    }
-    
-    .calibration-input {
-      flex: 1;
-      min-width: 180px;
-      display: flex;
-      align-items: center;
-    }
-    
-    input[type="number"] {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      font-size: 16px;
-      background-color: white;
-    }
-    
-    input[type="number"]:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 15px;
-    }
-    
-    table th,
-    table td {
-      padding: 12px 10px;
-      text-align: center;
-      border: 1px solid var(--border-color);
-    }
-    
-    table th {
-      background-color: #f1f5f9;
-      font-weight: 600;
-    }
-    
-    table tr:nth-child(even) {
-      background-color: #f8fafc;
-    }
-    
-    .cal-result {
-      padding: 10px;
-      background-color: #f1f5f9;
-      border-radius: var(--border-radius);
-      font-weight: 500;
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    
-    /* iPad特定樣式 */
-    @media only screen and (min-width: 768px) {
-      .container {
-        padding: 20px;
-        max-width: 1000px;
-      }
-      
-      .two-column {
-        display: flex;
-        gap: 20px;
-      }
-      
-      .column {
-        flex: 1;
-      }
-      
-      .plot-container {
-        height: 400px;
-      }
-      
-      button {
-        padding: 12px 24px;
-      }
-    }
-    
-    /* iPad橫向模式 */
-    @media only screen and (min-width: 1024px) {
-      .container {
-        padding: 30px;
-      }
-      
-      .canvas-container {
-        max-height: 500px;
-      }
-    }
-    
-    /* 深色模式支援 */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --background-color: #0f172a;
-        --text-color: #f8fafc;
-        --border-color: #334155;
-      }
-      
-      .section {
-        background-color: #1e293b;
-      }
-      
-      input[type="range"] {
-        background-color: #334155;
-      }
-      
-      input[type="number"] {
-        background-color: #1e293b;
-        color: var(--text-color);
-      }
-      
-      table th {
-        background-color: #334155;
-      }
-      
-      table tr:nth-child(even) {
-        background-color: #1e293b;
-      }
-      
-      .cal-result {
-        background-color: #334155;
-      }
-      
-      .slider-value {
-        background-color: #1e293b;
-      }
-    }
+    :root{--primary-color:#3b82f6;--primary-dark:#2563eb;--secondary-color:#22c55e;--secondary-dark:#16a34a;--danger-color:#ef4444;--danger-dark:#dc2626;--background-color:#f8fafc;--text-color:#0f172a;--border-color:#cbd5e1;--border-radius:10px;--safe-area-inset-top:env(safe-area-inset-top,0);--safe-area-inset-bottom:env(safe-area-inset-bottom,20px)}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:0 12px;padding-top:calc(var(--safe-area-inset-top) + 12px);padding-bottom:calc(var(--safe-area-inset-bottom) + 12px);background-color:var(--background-color);color:var(--text-color);overscroll-behavior-y:none;touch-action:manipulation}.container{max-width:100%;margin:0 auto;padding-bottom:30px}.header{text-align:center;padding:15px 0;margin-bottom:20px;position:sticky;top:0;background-color:var(--background-color);z-index:10}h1{font-size:24px;margin:0;font-weight:600}.canvas-container{position:relative;width:100%;max-width:800px;margin:0 auto 20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);border-radius:var(--border-radius);overflow:visible;height:auto;min-height:300px}canvas{display:block;width:100%;height:auto;border-radius:var(--border-radius);touch-action:none}.file-input-wrapper{display:flex;width:100%;flex-direction:column;gap:10px}.section{background-color:#fff;padding:20px;margin-bottom:20px;border-radius:var(--border-radius);box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)}.section-title{font-size:18px;font-weight:600;margin-top:0;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid var(--border-color)}.slider-container{margin-bottom:15px}.slider-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:500}.slider-value{font-family:monospace;background-color:var(--background-color);padding:5px 8px;border-radius:5px;font-weight:400}input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:5px;background-color:#e2e8f0;outline:0;transition:background .2s}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:var(--primary-color);cursor:pointer;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:background .2s}input[type=range]::-webkit-slider-thumb:active{background:var(--primary-dark);transform:scale(1.1)}.button-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px;margin-bottom:5px}button{-webkit-appearance:none;appearance:none;background-color:var(--primary-color);color:#fff;border:none;padding:12px 20px;font-size:16px;font-weight:500;border-radius:var(--border-radius);cursor:pointer;flex:1 0 auto;min-width:120px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.1)}button:active{background-color:var(--primary-dark);transform:translateY(1px)}button:disabled{opacity:.6;cursor:not-allowed}.btn-secondary{background-color:var(--secondary-color)}.btn-secondary:active{background-color:var(--secondary-dark)}.btn-danger{background-color:var(--danger-color)}.btn-danger:active{background-color:var(--danger-dark)}.btn-outline{background-color:transparent;color:var(--primary-color);border:2px solid var(--primary-color)}.btn-outline:active{background-color:rgba(59,130,246,.1)}.btn-icon{width:44px;min-width:auto;padding:10px}.plot-container{width:100%;height:300px;margin-top:20px;margin-bottom:10px}.calibration-form{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}.calibration-input{flex:1;min-width:180px;display:flex;align-items:center}input[type=number]{display:block;width:100%;padding:12px;border:1px solid var(--border-color);border-radius:var(--border-radius);font-size:16px;background-color:#fff}input[type=number]:focus{outline:0;border-color:var(--primary-color);box-shadow:0 0 0 2px rgba(59,130,246,.3)}input[type=file]{display:none}.file-label{display:inline-flex;padding:12px 20px;background-color:var(--secondary-color);color:#fff;border-radius:var(--border-radius);cursor:pointer;font-weight:500;text-align:center;flex:1;box-shadow:0 1px 3px rgba(0,0,0,.1);align-items:center;justify-content:center;gap:8px}.file-label:active{background-color:var(--secondary-dark);transform:translateY(1px)}.file-name{margin-top:8px;font-size:14px;color:#64748b;word-break:break-all}label{display:block;margin-bottom:5px;font-weight:500}table{width:100%;border-collapse:collapse;margin-bottom:15px}table td,table th{padding:12px 10px;text-align:center;border:1px solid var(--border-color)}table th{background-color:#f1f5f9;font-weight:600}table tr:nth-child(even){background-color:#f8fafc}.cal-result{padding:10px;background-color:#f1f5f9;border-radius:var(--border-radius);font-weight:500;text-align:center;margin-bottom:15px}.empty-state{text-align:center;padding:30px 20px;color:#64748b}.empty-state svg{width:60px;height:60px;margin-bottom:15px;color:#94a3b8}.empty-state h3{margin:0 0 10px;font-weight:600;color:var(--text-color)}.empty-state p{margin:0}@media only screen and (min-width:768px){.container{padding:20px;max-width:1000px}.plot-container{height:400px}button{padding:12px 24px}}@media only screen and (min-width:1024px){.container{padding:30px}.canvas-container{max-height:none}}@media (prefers-color-scheme:dark){:root{--background-color:#0f172a;--text-color:#f8fafc;--border-color:#334155}.section{background-color:#1e293b}input[type=range]{background-color:#334155}input[type=number]{background-color:#1e293b;color:var(--text-color)}table th{background-color:#334155}table tr:nth-child(even){background-color:#1e293b}.cal-result{background-color:#334155}.slider-value{background-color:#1e293b}.file-name{color:#94a3b8}}
   </style>
 </head>
 
 <body>
   <div class="container">
     <div class="header">
-      <h1>📱 iPad光譜分析工具</h1>
+      <h1>📱 光譜分析</h1>
     </div>
     
     <div class="section">
       <h2 class="section-title">圖像輸入</h2>
       
+      <div id="imageEmptyState" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 16L8.586 11.414C8.96106 11.0391 9.46967 10.8284 10 10.8284C10.5303 10.8284 11.0389 11.0391 11.414 11.414L16 16M14 14L15.586 12.414C15.9611 12.0391 16.4697 11.8284 17 11.8284C17.5303 11.8284 18.0389 12.0391 18.414 12.414L20 14M14 8H14.01M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V18C4 19.1046 4.89543 20 6 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>尚未添加圖像</h3>
+        <p>請上傳光譜圖像以進行分析</p>
+      </div>
+      
       <div class="file-input-wrapper">
-        <div class="file-buttons">
-          <button id="selectPhotoBtn" class="btn-secondary">
+        <div style="margin-bottom:15px;">
+          <label for="imgInput" class="file-label">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 16L8.586 11.414C8.96106 11.0391 9.46967 10.8284 10 10.8284C10.5303 10.8284 11.0389 11.0391 11.414 11.414L16 16M14 14L15.586 12.414C15.9611 12.0391 16.4697 11.8284 17 11.8284C17.5303 11.8284 18.0389 12.0391 18.414 12.414L20 14M14 8H14.01M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V18C4 19.1046 4.89543 20 6 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            選擇相片
-          </button>
+            選擇光譜圖像
+          </label>
+          <input type="file" id="imgInput" accept="image/*" />
         </div>
-        <input type="file" id="imgInput" accept="image/*" style="display:none;" />
+        <div id="imageFileName" class="file-name"></div>
       </div>
       
-      <div class="canvas-container">
+      <div class="canvas-container" style="display:none;">
         <canvas id="preview" touch-action="none"></canvas>
       </div>
     </div>
@@ -412,38 +51,42 @@
       <h2 class="section-title">選擇區域</h2>
       
       <div class="slider-container">
-        <div class="slider-label">
-          X 起點 <span class="slider-value" id="xStartVal">00000</span>
-        </div>
+        <div class="slider-label">X 起點 <span class="slider-value" id="xStartVal">00000</span></div>
         <input type="range" id="xStart" min="0" max="100" value="0" />
       </div>
       
       <div class="slider-container">
-        <div class="slider-label">
-          X 終點 <span class="slider-value" id="xEndVal">00100</span>
-        </div>
+        <div class="slider-label">X 終點 <span class="slider-value" id="xEndVal">00100</span></div>
         <input type="range" id="xEnd" min="0" max="100" value="100" />
       </div>
       
       <div class="button-row">
-        <button id="analyzeBtn" class="btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <button id="analyzeBtn" class="btn-primary" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M9 17L15 11L9 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           分析光譜
         </button>
       </div>
       
-      <div id="plot" class="plot-container"></div>
+      <div id="plotEmptyState" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M21 21H3V3M20 7L14 13L10 9L4 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>尚未產生圖表</h3>
+        <p>載入圖像後，設定範圍並點擊分析按鈕</p>
+      </div>
+      
+      <div id="plotContainer" style="display:none;">
+        <div id="plot" class="plot-container"></div>
+      </div>
     </div>
     
     <div class="section">
       <h2 class="section-title">波長校正</h2>
       
       <div class="slider-container">
-        <div class="slider-label">
-          🎯 校正畫素 <span class="slider-value" id="xCalibrateVal">00050</span>
-        </div>
+        <div class="slider-label">🎯 校正畫素 <span class="slider-value" id="xCalibrateVal">00050</span></div>
         <input type="range" id="xCalibrate" min="0" max="100" value="50" />
       </div>
       
@@ -453,32 +96,32 @@
           <input type="number" id="wavelengthInput" inputmode="decimal" />
         </div>
         
-        <button id="addPointBtn" class="btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <button id="addPointBtn" class="btn-primary" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           加入校正點
         </button>
       </div>
       
-      <table id="calibrationTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>畫素位置</th>
-            <th>波長 (nm)</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div style="margin-top:20px;">
+        <table id="calibrationTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>畫素位置</th>
+              <th>波長 (nm)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
       
       <div class="button-row">
-        <button id="generateRegressionBtn" class="btn-secondary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 15L12 10L17 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 10L12 3L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <button id="generateRegressionBtn" class="btn-secondary" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M7 15L12 10L17 15M3 10L12 3L21 10M3 21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           產生校正回歸線
         </button>
@@ -490,170 +133,207 @@
     <div class="section">
       <h2 class="section-title">波長強度圖</h2>
       
+      <div id="wavelengthPlotEmptyState" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M21 21H3V3M20 7L14 13L10 9L4 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>尚未產生波長強度圖</h3>
+        <p>完成校正後，點擊顯示強度-波長圖按鈕</p>
+      </div>
+      
+      <div id="wavelengthPlotContainer" style="display:none;">
+        <div id="wavelengthPlot" class="plot-container"></div>
+      </div>
+      
       <div class="button-row">
-        <button id="plotWavelengthBtn" class="btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 21H3V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M20 7L14 13L10 9L4 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <button id="plotWavelengthBtn" class="btn-primary" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M21 21H3V3M20 7L14 13L10 9L4 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           顯示強度－波長圖
         </button>
-        <button id="toggleBackgroundBtn" class="btn-outline">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <button id="toggleBackgroundBtn" class="btn-outline" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M4 16L8.586 11.414C8.96106 11.0391 9.46967 10.8284 10 10.8284C10.5303 10.8284 11.0389 11.0391 11.414 11.414L16 16M14 14L15.586 12.414C15.9611 12.0391 16.4697 11.8284 17 11.8284C17.5303 11.8284 18.0389 12.0391 18.414 12.414L20 14M14 8H14.01M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V18C4 19.1046 4.89543 20 6 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           加入背景圖
         </button>
       </div>
       
-      <div id="wavelengthPlot" class="plot-container"></div>
+      <div class="button-row" style="margin-top:15px;">
+        <button id="exportParamsBtn" class="btn-secondary" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15M12 3L12 15M12 15L16 11M12 15L8 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          匯出分析參數
+        </button>
+      </div>
+      
+      <div id="exportedParams" style="margin-top:15px;padding:10px;background-color:#f1f5f9;border-radius:8px;font-family:monospace;display:none;word-break:break-all;"></div>
     </div>
   </div>
 
   <script>
-    // DOM元素
-    const canvas = document.getElementById("preview");
-    const ctx = canvas.getContext("2d", { alpha: false });
-    const imgInput = document.getElementById("imgInput");
-    const selectPhotoBtn = document.getElementById("selectPhotoBtn");
-    const takePictureBtn = document.getElementById("takePictureBtn");
-    const xStartSlider = document.getElementById("xStart");
-    const xEndSlider = document.getElementById("xEnd");
-    const xCalibrateSlider = document.getElementById("xCalibrate");
-    const xStartVal = document.getElementById("xStartVal");
-    const xEndVal = document.getElementById("xEndVal");
-    const xCalibrateVal = document.getElementById("xCalibrateVal");
-    const wavelengthInput = document.getElementById("wavelengthInput");
-    const analyzeBtn = document.getElementById("analyzeBtn");
-    const addPointBtn = document.getElementById("addPointBtn");
-    const generateRegressionBtn = document.getElementById("generateRegressionBtn");
-    const plotWavelengthBtn = document.getElementById("plotWavelengthBtn");
-    const toggleBackgroundBtn = document.getElementById("toggleBackgroundBtn");
-    const regressionResult = document.getElementById("regressionResult");
+    // DOM元素與全局變量
+    const el = id => document.getElementById(id),
+          canvas = el("preview"),
+          ctx = canvas.getContext("2d", {alpha: false}),
+          img = new Image();
     
-    // 全局變量
-    const img = new Image();
-    let calibrationPoints = [];
-    let calibration = null;
-    let regressionConfirmed = false;
-    let imageData, rawData, width, height;
-    let backgroundImageOn = false;
-    let isGestureDetected = false;
-    let lastTouchDistance = 0;
-    let touchStartX = 0;
-    let canvasDimensions = { offsetX: 0, offsetY: 0, drawWidth: 0, drawHeight: 0 };
+    const elems = {
+      imgInput: el("imgInput"),
+      fileName: el("imageFileName"),
+      emptyState: el("imageEmptyState"),
+      canvasContainer: document.querySelector(".canvas-container"),
+      xStart: el("xStart"),
+      xEnd: el("xEnd"),
+      xCalibrate: el("xCalibrate"),
+      xStartVal: el("xStartVal"),
+      xEndVal: el("xEndVal"),
+      xCalibrateVal: el("xCalibrateVal"),
+      wavelengthInput: el("wavelengthInput"),
+      analyzeBtn: el("analyzeBtn"),
+      addPointBtn: el("addPointBtn"),
+      genRegressionBtn: el("generateRegressionBtn"),
+      plotWaveBtn: el("plotWavelengthBtn"),
+      toggleBgBtn: el("toggleBackgroundBtn"),
+      exportBtn: el("exportParamsBtn"),
+      regressResult: el("regressionResult"),
+      plotEmpty: el("plotEmptyState"),
+      plotCtr: el("plotContainer"),
+      waveplotEmpty: el("wavelengthPlotEmptyState"),
+      waveplotCtr: el("wavelengthPlotContainer"),
+      exportedParams: el("exportedParams")
+    };
     
-    // 設置畫布以適應設備顯示
+    let calibPoints = [],
+        calibration = null,
+        regressConfirmed = false,
+        imageData, rawData, width, height,
+        bgImageOn = false,
+        gestureDetected = false,
+        lastTouchDist = 0,
+        touchStartX = 0,
+        canvasDims = {offsetX: 0, offsetY: 0, drawWidth: 0, drawHeight: 0};
+    
+    // 設置畫布
     function setupCanvas() {
-      const dpr = window.devicePixelRatio || 1;
-      const container = canvas.parentElement;
-      const containerWidth = container.clientWidth;
+      const dpr = window.devicePixelRatio || 1,
+            container = canvas.parentElement,
+            containerWidth = container.clientWidth;
       
-      // 設置畫布的實際尺寸
-      canvas.width = containerWidth * dpr;
-      canvas.height = (containerWidth * 0.75) * dpr; // 保持4:3或16:9的比例
+      // 計算畫布尺寸
+      let canvasW = containerWidth, 
+          canvasH = containerWidth * 0.75;
       
-      // 保持顯示尺寸不變
-      canvas.style.width = `${containerWidth}px`;
-      canvas.style.height = `${containerWidth * 0.75}px`;
+      // 如果有照片，根據照片比例調整
+      if (img.complete && img.naturalWidth > 0) {
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        canvasH = containerWidth / imgRatio;
+        
+        // 設定高度限制
+        canvasH = Math.min(Math.max(canvasH, containerWidth * 0.5), containerWidth * 1.2);
+      }
       
-      // 調整繪圖上下文比例
+      // 設置畫布尺寸
+      canvas.width = canvasW * dpr;
+      canvas.height = canvasH * dpr;
+      canvas.style.width = `${canvasW}px`;
+      canvas.style.height = `${canvasH}px`;
+      
+      // 調整繪圖上下文
       ctx.scale(dpr, dpr);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
+      
+      // 調整容器
+      container.style.height = `${canvasH}px`;
+      container.style.overflow = 'visible';
+      container.style.maxHeight = 'none';
     }
     
-    // 保持圖片比例繪製
-    function drawImageMaintainAspect(img, ctx, canvas) {
-      const dpr = window.devicePixelRatio || 1;
-      const canvasWidth = canvas.width / dpr;
-      const canvasHeight = canvas.height / dpr;
-      const imgRatio = img.naturalWidth / img.naturalHeight;
-      const canvasRatio = canvasWidth / canvasHeight;
+    // 繪製圖像
+    function drawImage() {
+      if (!img.complete || !img.naturalWidth) return;
       
-      let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+      const dpr = window.devicePixelRatio || 1,
+            canvasW = canvas.width / dpr,
+            canvasH = canvas.height / dpr,
+            imgRatio = img.naturalWidth / img.naturalHeight,
+            canvasRatio = canvasW / canvasH;
+      
+      let drawW, drawH, offsetX = 0, offsetY = 0;
       
       if (imgRatio > canvasRatio) {
-        // 圖片比畫布更寬
-        drawWidth = canvasWidth;
-        drawHeight = canvasWidth / imgRatio;
-        offsetY = (canvasHeight - drawHeight) / 2;
+        drawW = canvasW;
+        drawH = canvasW / imgRatio;
+        offsetY = (canvasH - drawH) / 2;
       } else {
-        // 圖片比畫布更高或等比例
-        drawHeight = canvasHeight;
-        drawWidth = canvasHeight * imgRatio;
-        offsetX = (canvasWidth - drawWidth) / 2;
+        drawH = canvasH;
+        drawW = canvasH * imgRatio;
+        offsetX = (canvasW - drawW) / 2;
       }
       
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
       
-      canvasDimensions = { offsetX, offsetY, drawWidth, drawHeight };
-      return canvasDimensions;
-    }
-    
-    // 五位數格式化
-    function formatNumber(n) {
-      return n.toString().padStart(5, "0");
+      canvasDims = {offsetX, offsetY, drawWidth: drawW, drawHeight: drawH};
+      return canvasDims;
     }
     
     // 更新滑桿
     function updateSliders(max) {
-      [xStartSlider, xEndSlider, xCalibrateSlider].forEach(slider => {
-        slider.max = max;
-      });
-      xStartSlider.value = 0;
-      xEndSlider.value = max;
-      xCalibrateSlider.value = Math.floor(max / 2);
+      [elems.xStart, elems.xEnd, elems.xCalibrate].forEach(s => s.max = max);
+      elems.xStart.value = 0;
+      elems.xEnd.value = max;
+      elems.xCalibrate.value = Math.floor(max / 2);
       syncSliderValues();
     }
     
     // 同步滑桿值
     function syncSliderValues() {
-      let x1 = parseInt(xStartSlider.value);
-      let x2 = parseInt(xEndSlider.value);
+      let x1 = parseInt(elems.xStart.value),
+          x2 = parseInt(elems.xEnd.value);
+      
       if (x2 < x1) [x1, x2] = [x2, x1];
       
-      xStartVal.textContent = formatNumber(x1);
-      xEndVal.textContent = formatNumber(x2);
-      xCalibrateVal.textContent = formatNumber(xCalibrateSlider.value);
+      elems.xStartVal.textContent = x1.toString().padStart(5, "0");
+      elems.xEndVal.textContent = x2.toString().padStart(5, "0");
+      elems.xCalibrateVal.textContent = elems.xCalibrate.value.toString().padStart(5, "0");
       
-      xCalibrateSlider.min = x1;
-      xCalibrateSlider.max = x2;
+      elems.xCalibrate.min = x1;
+      elems.xCalibrate.max = x2;
       
-      // 使用requestAnimationFrame來確保畫面更新
-      requestAnimationFrame(drawWithRectangle);
+      requestAnimationFrame(drawWithRect);
     }
     
     // 繪製方框
-    function drawWithRectangle() {
-      if (!img.complete || img.naturalWidth === 0) return;
+    function drawWithRect() {
+      if (!img.complete || !img.naturalWidth) return;
       
-      const dpr = window.devicePixelRatio || 1;
-      const canvasWidth = canvas.width / dpr;
-      const canvasHeight = canvas.height / dpr;
+      const dpr = window.devicePixelRatio || 1,
+            canvasW = canvas.width / dpr,
+            canvasH = canvas.height / dpr;
       
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-      const { offsetX, offsetY, drawWidth, drawHeight } = drawImageMaintainAspect(img, ctx, canvas);
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      const {offsetX, offsetY, drawWidth, drawHeight} = drawImage();
       
-      let x1 = parseInt(xStartSlider.value);
-      let x2 = parseInt(xEndSlider.value);
+      let x1 = parseInt(elems.xStart.value),
+          x2 = parseInt(elems.xEnd.value);
+      
       if (x2 < x1) [x1, x2] = [x2, x1];
       
-      // 計算縮放比例
-      let xScale = drawWidth / width;
-      let yScale = drawHeight / height;
+      // 計算比例
+      const xScale = drawWidth / width,
+            yScale = drawHeight / height,
+            rectX1 = Math.floor(offsetX + x1 * xScale) + 0.5,
+            rectX2 = Math.floor(offsetX + x2 * xScale) + 0.5,
+            rectY1 = Math.floor(offsetY + height * 0.45 * yScale) + 0.5,
+            rectY2 = Math.floor(offsetY + height * 0.55 * yScale) + 0.5;
       
-      // 使用整數位置+0.5來繪製更清晰的線條
-      let rectX1 = Math.floor(offsetX + x1 * xScale) + 0.5;
-      let rectX2 = Math.floor(offsetX + x2 * xScale) + 0.5;
-      let rectY1 = Math.floor(offsetY + height * 0.45 * yScale) + 0.5;
-      let rectY2 = Math.floor(offsetY + height * 0.55 * yScale) + 0.5;
-      
+      // 繪製矩形
       ctx.strokeStyle = "yellow";
       ctx.lineWidth = 2;
-      
-      // 使用路徑來繪製更精確的矩形
       ctx.beginPath();
       ctx.moveTo(rectX1, rectY1);
       ctx.lineTo(rectX2, rectY1);
@@ -666,143 +346,174 @@
     // 提取和繪製強度圖
     function extractAndPlot() {
       if (!rawData) {
-        showNotification("請先上傳圖片！");
+        notify("請先上傳圖片！");
         return;
       }
       
-      let x1 = parseInt(xStartSlider.value);
-      let x2 = parseInt(xEndSlider.value);
+      // 獲取選定範圍
+      let x1 = parseInt(elems.xStart.value),
+          x2 = parseInt(elems.xEnd.value);
+      
       if (x2 < x1) [x1, x2] = [x2, x1];
-      let y1 = Math.floor(height * 0.45) + 2;
-      let y2 = Math.floor(height * 0.55) - 2;
       
-      let dataX = [], dataY = [];
+      const y1 = Math.floor(height * 0.45) + 2,
+            y2 = Math.floor(height * 0.55) - 2,
+            dataX = [], 
+            dataY = [];
       
+      // 計算平均強度
       for (let x = x1; x <= x2; x++) {
         let sum = 0;
         for (let y = y1; y <= y2; y++) {
-          let idx = (y * width + x) * 4;
+          const idx = (y * width + x) * 4;
           if (idx < rawData.length) {
-            let r = rawData[idx];
-            let g = rawData[idx + 1];
-            let b = rawData[idx + 2];
-            let intensity = (r + g + b) / 3;
-            sum += intensity;
+            sum += (rawData[idx] + rawData[idx + 1] + rawData[idx + 2]) / 3;
           }
         }
-        let avg = sum / (y2 - y1 + 1);
         dataX.push(x);
-        dataY.push(avg);
+        dataY.push(sum / (y2 - y1 + 1));
       }
       
-      let shapes = [{
+      // 繪製標記線
+      const shapes = [{
         type: "line",
-        x0: parseInt(xCalibrateSlider.value),
-        x1: parseInt(xCalibrateSlider.value),
+        x0: parseInt(elems.xCalibrate.value),
+        x1: parseInt(elems.xCalibrate.value),
         y0: 0,
         y1: Math.max(...dataY),
-        line: { color: "red", width: 2, dash: "dot" }
+        line: {color: "red", width: 2, dash: "dot"}
       }];
       
-      // 使用Plotly繪製適合觸控操作的圖表
-      Plotly.newPlot("plot", [{
-        x: dataX,
-        y: dataY,
-        mode: "lines",
-        name: "像素強度",
-        line: { color: "#3b82f6", width: 3 }
-      }], {
-        margin: { t: 20, r: 20, b: 40, l: 50 },
-        xaxis: { 
-          title: "像素位置",
-          showline: true,
-          mirror: true,
-          ticks: 'outside',
-          linecolor: 'black',
-          linewidth: 2,
-          tickfont: { size: 14 }
-        },
-        yaxis: { 
-          title: "強度",
-          showline: true,
-          mirror: true,
-          ticks: 'outside',
-          linecolor: 'black',
-          linewidth: 2,
-          tickfont: { size: 14 }
-        },
-        shapes: shapes,
-        dragmode: 'pan',
-        modeBarButtonsToAdd: [
-          'hoverClosestCartesian',
-          'hoverCompareCartesian',
-          'toggleSpikelines'
-        ],
-        hovermode: 'closest',
-        colorway: ['#3b82f6', '#ef4444', '#22c55e'],
-        plot_bgcolor: 'rgba(255,255,255,0)',
-        paper_bgcolor: 'rgba(255,255,255,0)'
-      }, { 
-        displayModeBar: true, 
-        responsive: true,
-        toImageButtonOptions: {
-          format: 'png',
-          filename: 'spectrum_intensity',
-          scale: 2
-        },
-        modeBarButtonsToRemove: [
-          'lasso2d', 
-          'select2d',
-          'autoScale2d'
-        ]
-      });
+      // 顯示圖表
+      elems.plotEmpty.style.display = "none";
+      elems.plotCtr.style.display = "block";
+      
+      // 更新或創建圖表
+      const plotEl = document.getElementById('plot');
+      if (plotEl.data && plotEl.data.length > 0) {
+        Plotly.update('plot', {x: [dataX], y: [dataY]}, {shapes});
+      } else {
+        Plotly.newPlot("plot", [{
+          x: dataX,
+          y: dataY,
+          mode: "lines",
+          name: "像素強度",
+          line: {color: "#3b82f6", width: 3}
+        }], {
+          margin: {t: 20, r: 20, b: 40, l: 50},
+          xaxis: {
+            title: "像素位置",
+            showline: true,
+            mirror: true,
+            ticks: 'outside',
+            linecolor: 'black',
+            linewidth: 2,
+            tickfont: {size: 14}
+          },
+          yaxis: {
+            title: "強度",
+            showline: true,
+            mirror: true,
+            ticks: 'outside',
+            linecolor: 'black',
+            linewidth: 2,
+            tickfont: {size: 14}
+          },
+          shapes: shapes,
+          dragmode: 'pan',
+          modeBarButtonsToAdd: [
+            'hoverClosestCartesian',
+            'hoverCompareCartesian',
+            'toggleSpikelines'
+          ],
+          hovermode: 'closest',
+          colorway: ['#3b82f6', '#ef4444', '#22c55e'],
+          plot_bgcolor: 'rgba(255,255,255,0)',
+          paper_bgcolor: 'rgba(255,255,255,0)'
+        }, {
+          displayModeBar: true,
+          responsive: true,
+          toImageButtonOptions: {
+            format: 'png',
+            filename: 'spectrum_intensity',
+            scale: 2
+          },
+          modeBarButtonsToRemove: [
+            'lasso2d',
+            'select2d',
+            'autoScale2d'
+          ]
+        });
+      }
+      
+      // 啟用校正按鈕
+      elems.addPointBtn.disabled = false;
     }
     
     // 更新校正表格
-    function updateCalibrationTable() {
+    function updateCalibTable() {
       const tbody = document.querySelector("#calibrationTable tbody");
       tbody.innerHTML = "";
       
-      calibrationPoints.forEach((p, index) => {
+      calibPoints.forEach((p, i) => {
         const row = document.createElement("tr");
         
-        const cellIndex = document.createElement("td");
-        const cellPixel = document.createElement("td");
-        const cellWavelength = document.createElement("td");
-        const cellDelete = document.createElement("td");
+        // 建立單元格
+        const cells = [
+          {text: i + 1},
+          {text: p.pixel},
+          {text: p.wavelength.toFixed(2)},
+          {html: createDeleteBtn(i)}
+        ];
         
-        cellIndex.textContent = index + 1;
-        cellPixel.textContent = p.pixel;
-        cellWavelength.textContent = p.wavelength.toFixed(2);
+        cells.forEach(cell => {
+          const td = document.createElement("td");
+          if (cell.text !== undefined) td.textContent = cell.text;
+          if (cell.html) td.appendChild(cell.html);
+          row.appendChild(td);
+        });
         
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "❌";
-        deleteBtn.classList.add("btn-danger", "btn-icon");
-        deleteBtn.onclick = (e) => {
-          e.preventDefault();
-          calibrationPoints.splice(index, 1);
-          regressionConfirmed = false;
-          calibration = null;
-          regressionResult.textContent = "尚未校正";
-          updateCalibrationTable();
-        };
-        
-        cellDelete.appendChild(deleteBtn);
-        
-        row.appendChild(cellIndex);
-        row.appendChild(cellPixel);
-        row.appendChild(cellWavelength);
-        row.appendChild(cellDelete);
         tbody.appendChild(row);
       });
+      
+      // 更新回歸按鈕狀態
+      elems.genRegressionBtn.disabled = calibPoints.length < 2;
+    }
+    
+    // 創建刪除按鈕
+    function createDeleteBtn(index) {
+      const btn = document.createElement("button");
+      btn.textContent = "❌";
+      btn.classList.add("btn-icon");
+      btn.style.margin = "0 auto";
+      btn.style.display = "block";
+      btn.style.backgroundColor = "white";
+      btn.style.border = "2px solid #ef4444";
+      btn.style.color = "#ef4444";
+      btn.style.width = "36px";
+      btn.style.height = "36px";
+      btn.style.padding = "0";
+      btn.style.minWidth = "auto";
+      
+      btn.onclick = e => {
+        e.preventDefault();
+        calibPoints.splice(index, 1);
+        regressConfirmed = false;
+        calibration = null;
+        elems.regressResult.textContent = "尚未校正";
+        updateCalibTable();
+        updateButtonStates();
+      };
+      
+      return btn;
     }
     
     // 獲取選定範圍的圖像數據URL
-    function getSelectedImageDataURL(x1, x2, y1, y2) {
-      const cropCanvas = document.createElement("canvas");
-      const cropCtx = cropCanvas.getContext("2d");
-      const cropWidth = x2 - x1 + 1;
-      const cropHeight = y2 - y1 + 1;
+    function getSelectedImageURL(x1, x2, y1, y2) {
+      const cropCanvas = document.createElement("canvas"),
+            cropCtx = cropCanvas.getContext("2d"),
+            cropWidth = x2 - x1 + 1,
+            cropHeight = y2 - y1 + 1;
       
       cropCanvas.width = cropWidth;
       cropCanvas.height = cropHeight;
@@ -826,51 +537,56 @@
     // 繪製波長強度圖
     function plotWavelengthGraph() {
       if (!rawData) {
-        showNotification("請先上傳圖片！");
+        notify("請先上傳圖片！");
         return;
       }
       
       if (!calibration) {
-        showNotification("請先加入至少兩個校正點，並完成校正！");
+        notify("請先加入至少兩個校正點，並完成校正！", "error");
         return;
       }
       
-      let x1 = parseInt(xStartSlider.value);
-      let x2 = parseInt(xEndSlider.value);
+      // 獲取資料
+      let x1 = parseInt(elems.xStart.value),
+          x2 = parseInt(elems.xEnd.value);
+      
       if (x2 < x1) [x1, x2] = [x2, x1];
-      let y1 = Math.floor(height * 0.45) + 2;
-      let y2 = Math.floor(height * 0.55) - 2;
       
-      let dataX = [], dataY = [];
+      const y1 = Math.floor(height * 0.45) + 2,
+            y2 = Math.floor(height * 0.55) - 2,
+            dataX = [],
+            dataY = [];
       
+      // 計算強度
       for (let x = x1; x <= x2; x++) {
         let sum = 0;
         for (let y = y1; y <= y2; y++) {
-          let idx = (y * width + x) * 4;
+          const idx = (y * width + x) * 4;
           if (idx < rawData.length) {
-            let r = rawData[idx];
-            let g = rawData[idx + 1];
-            let b = rawData[idx + 2];
-            let intensity = (r + g + b) / 3;
-            sum += intensity;
+            sum += (rawData[idx] + rawData[idx + 1] + rawData[idx + 2]) / 3;
           }
         }
-        let avg = sum / (y2 - y1 + 1);
         dataX.push(x);
-        dataY.push(avg);
+        dataY.push(sum / (y2 - y1 + 1));
       }
       
-      const { a, b } = calibration;
-      let wavelengthX = dataX.map(x => a * x + b);
+      // 轉換為波長
+      const {a, b} = calibration;
+      const wavelengthX = dataX.map(x => a * x + b);
       
+      // 顯示圖表
+      elems.waveplotEmpty.style.display = "none";
+      elems.waveplotCtr.style.display = "block";
+      
+      // 建立圖表
       Plotly.newPlot("wavelengthPlot", [{
         x: wavelengthX,
         y: dataY,
         mode: "lines",
         name: "波長強度",
-        line: { color: "#22c55e", width: 3 }
+        line: {color: "#22c55e", width: 3}
       }], {
-        margin: { t: 20, r: 20, b: 40, l: 50 },
+        margin: {t: 20, r: 20, b: 40, l: 50},
         xaxis: {
           title: "波長 (nm)",
           showline: true,
@@ -878,7 +594,7 @@
           ticks: 'outside',
           linecolor: 'black',
           linewidth: 2,
-          tickfont: { size: 14 }
+          tickfont: {size: 14}
         },
         yaxis: {
           title: "強度",
@@ -887,7 +603,7 @@
           ticks: 'outside',
           linecolor: 'black',
           linewidth: 2,
-          tickfont: { size: 14 }
+          tickfont: {size: 14}
         },
         dragmode: 'pan',
         modeBarButtonsToAdd: [
@@ -899,8 +615,8 @@
         images: [],
         plot_bgcolor: 'rgba(255,255,255,0)',
         paper_bgcolor: 'rgba(255,255,255,0)'
-      }, { 
-        displayModeBar: true, 
+      }, {
+        displayModeBar: true,
         responsive: true,
         toImageButtonOptions: {
           format: 'png',
@@ -908,107 +624,116 @@
           scale: 2
         },
         modeBarButtonsToRemove: [
-          'lasso2d', 
+          'lasso2d',
           'select2d',
           'autoScale2d'
         ]
       });
       
-      // 重置背景圖狀態
-      backgroundImageOn = false;
-      toggleBackgroundBtn.textContent = "🖼 加入背景圖";
-      toggleBackgroundBtn.classList.add("btn-outline");
-      toggleBackgroundBtn.classList.remove("btn-danger");
+      // 更新按鈕狀態
+      elems.toggleBgBtn.disabled = false;
+      bgImageOn = false;
+      elems.toggleBgBtn.textContent = "🖼 加入背景圖";
+      elems.toggleBgBtn.classList.add("btn-outline");
+      elems.toggleBgBtn.classList.remove("btn-danger");
+      elems.exportBtn.disabled = false;
     }
     
     // 切換背景圖
     function toggleBackground() {
       if (!rawData || !calibration) {
-        showNotification("請先加入至少兩個校正點，並完成校正！");
+        notify("請先加入至少兩個校正點，並完成校正！", "error");
         return;
       }
       
-      let x1 = parseInt(xStartSlider.value);
-      let x2 = parseInt(xEndSlider.value);
+      // 獲取範圍
+      let x1 = parseInt(elems.xStart.value),
+          x2 = parseInt(elems.xEnd.value);
+      
       if (x2 < x1) [x1, x2] = [x2, x1];
-      let y1 = Math.floor(height * 0.45) + 2;
-      let y2 = Math.floor(height * 0.55) - 2;
       
-      const { a, b } = calibration;
-      const wlStart = a * x1 + b;
-      const wlEnd = a * x2 + b;
+      const y1 = Math.floor(height * 0.45) + 2,
+            y2 = Math.floor(height * 0.55) - 2,
+            {a, b} = calibration,
+            wlStart = a * x1 + b,
+            wlEnd = a * x2 + b;
       
-      if (!backgroundImageOn) {
+      if (!bgImageOn) {
         // 加入背景圖
-        const imageDataUrl = getSelectedImageDataURL(x1, x2, y1, y2);
+        const imageDataUrl = getSelectedImageURL(x1, x2, y1, y2);
         
         if (imageDataUrl) {
-          const bgImage = {
-            source: imageDataUrl,
-            xref: "x",
-            yref: "paper",
-            x: wlStart,
-            y: 1,
-            sizex: wlEnd - wlStart,
-            sizey: 1,
-            sizing: "stretch",
-            opacity: 0.6,
-            layer: "below"
-          };
-          
           Plotly.relayout("wavelengthPlot", {
-            images: [bgImage]
+            images: [{
+              source: imageDataUrl,
+              xref: "x",
+              yref: "paper",
+              x: wlStart,
+              y: 1,
+              sizex: wlEnd - wlStart,
+              sizey: 1,
+              sizing: "stretch",
+              opacity: 0.6,
+              layer: "below"
+            }]
           });
           
-          backgroundImageOn = true;
-          toggleBackgroundBtn.textContent = "🚫 移除背景圖";
-          toggleBackgroundBtn.classList.remove("btn-outline");
-          toggleBackgroundBtn.classList.add("btn-danger");
+          bgImageOn = true;
+          elems.toggleBgBtn.textContent = "🚫 移除背景圖";
+          elems.toggleBgBtn.classList.remove("btn-outline");
+          elems.toggleBgBtn.classList.add("btn-danger");
         } else {
-          showNotification("無法生成背景圖片，請檢查選擇範圍！");
+          notify("無法生成背景圖片，請檢查選擇範圍！", "error");
         }
       } else {
         // 移除背景圖
-        Plotly.relayout("wavelengthPlot", {
-          images: []
-        });
+        Plotly.relayout("wavelengthPlot", {images: []});
         
-        backgroundImageOn = false;
-        toggleBackgroundBtn.textContent = "🖼 加入背景圖";
-        toggleBackgroundBtn.classList.add("btn-outline");
-        toggleBackgroundBtn.classList.remove("btn-danger");
+        bgImageOn = false;
+        elems.toggleBgBtn.textContent = "🖼 加入背景圖";
+        elems.toggleBgBtn.classList.add("btn-outline");
+        elems.toggleBgBtn.classList.remove("btn-danger");
       }
     }
     
     // 圖片加載處理
-    function loadImageFromFile(file) {
+    function loadImage(file) {
       if (!file) return;
       
-      // 重置所有分析數據
-      resetAllData();
+      // 重置數據
+      resetData();
+      
+      // 顯示文件名
+      elems.fileName.textContent = file.name;
       
       const reader = new FileReader();
       
-      reader.onload = function(e) {
-        img.onload = function() {
+      reader.onload = e => {
+        img.onload = () => {
+          // 設置圖片尺寸
           width = img.naturalWidth;
           height = img.naturalHeight;
           
-          setupCanvas();
+          // 更新界面
+          elems.emptyState.style.display = 'none';
           
+          // 設置畫布容器
+          elems.canvasContainer.style.display = 'block';
+          elems.canvasContainer.style.overflow = 'visible';
+          elems.canvasContainer.style.height = 'auto';
+          elems.canvasContainer.style.maxHeight = 'none';
+          
+          // 設置畫布
+          setupCanvas();
           updateSliders(width - 1);
           
-          // 使用Promise確保圖片完全解碼後再處理
-          if (img.decode) {
-            img.decode().then(() => {
-              processLoadedImage();
-            }).catch(err => {
+          // 處理圖片
+          (img.decode ? img.decode() : Promise.resolve())
+            .then(processImage)
+            .catch(err => {
               console.error("圖片解碼失敗:", err);
-              processLoadedImage();
+              processImage();
             });
-          } else {
-            processLoadedImage();
-          }
         };
         
         img.src = e.target.result;
@@ -1017,31 +742,55 @@
       reader.readAsDataURL(file);
     }
     
-    // 重置所有分析數據
-    function resetAllData() {
+    // 重置數據
+    function resetData() {
       // 清空校正點
-      calibrationPoints = [];
+      calibPoints = [];
       calibration = null;
-      regressionConfirmed = false;
-      regressionResult.textContent = "尚未校正";
-      updateCalibrationTable();
+      regressConfirmed = false;
+      elems.regressResult.textContent = "尚未校正";
+      updateCalibTable();
       
       // 清空圖表
       Plotly.purge("plot");
       Plotly.purge("wavelengthPlot");
       
-      // 重置背景圖狀態
-      backgroundImageOn = false;
-      toggleBackgroundBtn.textContent = "🖼 加入背景圖";
-      toggleBackgroundBtn.classList.add("btn-outline");
-      toggleBackgroundBtn.classList.remove("btn-danger");
+      // 重置顯示狀態
+      elems.plotEmpty.style.display = "block";
+      elems.plotCtr.style.display = "none";
+      elems.waveplotEmpty.style.display = "block";
+      elems.waveplotCtr.style.display = "none";
       
-      // 清空波長輸入框
-      wavelengthInput.value = "";
+      // 重置背景狀態
+      bgImageOn = false;
+      elems.toggleBgBtn.textContent = "🖼 加入背景圖";
+      elems.toggleBgBtn.classList.add("btn-outline");
+      elems.toggleBgBtn.classList.remove("btn-danger");
+      
+      // 清空波長輸入
+      elems.wavelengthInput.value = "";
+      
+      // 更新按鈕狀態
+      updateButtonStates();
     }
     
-    // 處理加載好的圖片
-    function processLoadedImage() {
+    // 更新按鈕狀態
+    function updateButtonStates() {
+      const hasImage = img.complete && img.naturalWidth > 0,
+            hasAnalyzed = elems.plotCtr.style.display === "block",
+            hasCalibration = calibration !== null && regressConfirmed;
+      
+      elems.analyzeBtn.disabled = !hasImage;
+      elems.addPointBtn.disabled = !hasAnalyzed;
+      elems.genRegressionBtn.disabled = calibPoints.length < 2;
+      elems.plotWaveBtn.disabled = !hasCalibration;
+      elems.toggleBgBtn.disabled = !hasCalibration || elems.waveplotCtr.style.display === "none";
+      elems.exportBtn.disabled = !hasCalibration;
+    }
+    
+    // 處理圖片
+    function processImage() {
+      // 創建臨時畫布獲取像素數據
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = width;
       tempCanvas.height = height;
@@ -1052,45 +801,50 @@
         imageData = tempCtx.getImageData(0, 0, width, height);
         rawData = imageData.data;
         
-        drawWithRectangle();
-        showNotification("圖片已成功載入", "success");
+        drawWithRect();
+        notify("圖片已成功載入", "success");
+        
+        // 啟用分析按鈕
+        elems.analyzeBtn.disabled = false;
       } catch (e) {
         console.error("處理圖片時發生錯誤:", e);
-        showNotification("圖片處理失敗，請嘗試使用其他圖片。", "error");
+        notify("圖片處理失敗，請嘗試使用其他圖片。", "error");
       }
     }
     
     // 添加校正點
-    function addCalibrationPoint() {
-      const pixel = parseInt(xCalibrateSlider.value);
-      const wavelength = parseFloat(wavelengthInput.value);
+    function addCalibPoint() {
+      const pixel = parseInt(elems.xCalibrate.value),
+            wavelength = parseFloat(elems.wavelengthInput.value);
       
       if (isNaN(pixel) || isNaN(wavelength)) {
-        showNotification("請輸入有效的畫素與波長！", "error");
+        notify("請輸入有效的畫素與波長！", "error");
         return;
       }
       
-      calibrationPoints.push({ pixel, wavelength });
-      regressionConfirmed = false;
+      calibPoints.push({pixel, wavelength});
+      regressConfirmed = false;
       calibration = null;
-      regressionResult.textContent = "尚未校正";
-      updateCalibrationTable();
-      showNotification("已加入校正點", "success");
-      wavelengthInput.value = "";
+      elems.regressResult.textContent = "尚未校正";
+      updateCalibTable();
+      notify("已加入校正點", "success");
+      elems.wavelengthInput.value = "";
+      
+      updateButtonStates();
     }
     
     // 生成回歸線
     function generateRegression() {
-      if (calibrationPoints.length < 2) {
-        showNotification("請至少輸入兩個校正點！", "error");
+      if (calibPoints.length < 2) {
+        notify("請至少輸入兩個校正點！", "error");
         return;
       }
       
-      // 使用所有校正點進行線性回歸
+      // 線性回歸
       let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-      const n = calibrationPoints.length;
+      const n = calibPoints.length;
       
-      calibrationPoints.forEach(p => {
+      calibPoints.forEach(p => {
         sumX += p.pixel;
         sumY += p.wavelength;
         sumXY += p.pixel * p.wavelength;
@@ -1100,127 +854,185 @@
       const a = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
       const b = (sumY - a * sumX) / n;
       
-      calibration = { a, b };
-      regressionConfirmed = true;
+      calibration = {a, b};
+      regressConfirmed = true;
       
-      regressionResult.textContent = `λ = ${a.toFixed(4)} × x + ${b.toFixed(2)}`;
-      showNotification("已生成校正方程式", "success");
+      elems.regressResult.textContent = `λ = ${a.toFixed(4)} × x + ${b.toFixed(2)}`;
+      notify("已生成校正方程式", "success");
+      
+      updateButtonStates();
     }
     
-    // 顯示通知提示
-    function showNotification(message, type = "info") {
-      // 創建通知元素
-      const notification = document.createElement("div");
-      notification.textContent = message;
-      notification.style.position = "fixed";
-      notification.style.bottom = "20px";
-      notification.style.left = "50%";
-      notification.style.transform = "translateX(-50%)";
-      notification.style.padding = "12px 20px";
-      notification.style.borderRadius = "8px";
-      notification.style.fontWeight = "500";
-      notification.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
-      notification.style.zIndex = "9999";
-      notification.style.maxWidth = "80%";
-      notification.style.textAlign = "center";
-      
-      // 設置不同類型的樣式
-      switch(type) {
-        case "success":
-          notification.style.backgroundColor = "#22c55e";
-          notification.style.color = "white";
-          break;
-        case "error":
-          notification.style.backgroundColor = "#ef4444";
-          notification.style.color = "white";
-          break;
-        default:
-          notification.style.backgroundColor = "#3b82f6";
-          notification.style.color = "white";
+    // 匯出分析參數
+    function exportParams() {
+      if (!rawData || !calibration) {
+        notify("請先完成波長校正！", "error");
+        return;
       }
       
-      // 添加到頁面並在2秒後移除
+      // 獲取參數
+      const x1 = parseInt(elems.xStart.value),
+            x2 = parseInt(elems.xEnd.value),
+            {a, b} = calibration,
+            params = {
+              xStart: x1,
+              xEnd: x2,
+              wavelengthStart: a * x1 + b,
+              wavelengthEnd: a * x2 + b,
+              regressionSlope: a,
+              regressionIntercept: b,
+              calibrationPoints: calibPoints
+            };
+      
+      // 顯示參數
+      elems.exportedParams.innerHTML = `<div style="font-weight:bold;margin-bottom:5px;">分析參數：</div>`;
+      elems.exportedParams.innerHTML += `X起點: ${params.xStart} (${params.wavelengthStart.toFixed(2)} nm)<br>`;
+      elems.exportedParams.innerHTML += `X終點: ${params.xEnd} (${params.wavelengthEnd.toFixed(2)} nm)<br>`;
+      elems.exportedParams.innerHTML += `回歸線斜率: ${params.regressionSlope.toFixed(6)}<br>`;
+      elems.exportedParams.innerHTML += `回歸線截距: ${params.regressionIntercept.toFixed(6)}<br>`;
+      
+      // 創建下載按鈕
+      const buttonArea = document.createElement("div");
+      buttonArea.style.marginTop = "15px";
+      buttonArea.style.display = "flex";
+      buttonArea.style.justifyContent = "flex-end";
+      
+      const downloadBtn = document.createElement("button");
+      downloadBtn.textContent = "下載CSV";
+      downloadBtn.classList.add("btn-secondary");
+      downloadBtn.onclick = () => {
+        // 建立CSV內容
+        let csv = "參數名稱,數值\n";
+        csv += `xStart,${params.xStart}\n`;
+        csv += `xEnd,${params.xEnd}\n`;
+        csv += `wavelengthStart,${params.wavelengthStart.toFixed(6)}\n`;
+        csv += `wavelengthEnd,${params.wavelengthEnd.toFixed(6)}\n`;
+        csv += `regressionSlope,${params.regressionSlope.toFixed(6)}\n`;
+        csv += `regressionIntercept,${params.regressionIntercept.toFixed(6)}\n\n`;
+        
+        // 添加校正點
+        csv += "calibration_index,pixel,wavelength\n";
+        params.calibrationPoints.forEach((p, i) => {
+          csv += `${i+1},${p.pixel},${p.wavelength.toFixed(6)}\n`;
+        });
+        
+        // 下載CSV
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "spectrum_parameters.csv";
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        notify("CSV檔案已下載", "success");
+      };
+      
+      buttonArea.appendChild(downloadBtn);
+      
+      // 移除舊按鈕，添加新按鈕
+      const oldBtn = document.getElementById("copyParamsBtn");
+      if (oldBtn) oldBtn.remove();
+      
+      elems.exportedParams.appendChild(buttonArea);
+      elems.exportedParams.style.display = "block";
+      
+      notify("已匯出分析參數", "success");
+    }
+    
+    // 顯示通知
+    function notify(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.textContent = message;
+      notification.style.cssText = `
+        position:fixed;
+        bottom:20px;
+        left:50%;
+        transform:translateX(-50%);
+        padding:12px 20px;
+        border-radius:8px;
+        font-weight:500;
+        box-shadow:0 4px 12px rgba(0,0,0,.15);
+        z-index:9999;
+        max-width:80%;
+        text-align:center;
+        background-color:${type === "success" ? "#22c55e" : type === "error" ? "#ef4444" : "#3b82f6"};
+        color:white;
+      `;
+      
       document.body.appendChild(notification);
       
       setTimeout(() => {
         notification.style.opacity = "0";
         notification.style.transition = "opacity 0.5s ease";
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 500);
+        setTimeout(() => document.body.removeChild(notification), 500);
       }, 2000);
     }
     
-    // 多點觸控手勢處理
-    function setupGestureEvents() {
+    // 設置多點觸控
+    function setupGestures() {
       // 觸控開始
-      canvas.addEventListener('touchstart', (e) => {
+      canvas.addEventListener('touchstart', e => {
         if (e.touches.length === 2) {
-          // 兩指觸控，準備進行縮放或滑動
-          isGestureDetected = true;
-          const touch1 = e.touches[0];
-          const touch2 = e.touches[1];
-          lastTouchDistance = Math.hypot(
-            touch2.clientX - touch1.clientX,
-            touch2.clientY - touch1.clientY
-          );
-          touchStartX = (touch1.clientX + touch2.clientX) / 2;
+          // 雙指觸控
+          gestureDetected = true;
+          const t1 = e.touches[0], t2 = e.touches[1];
+          lastTouchDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+          touchStartX = (t1.clientX + t2.clientX) / 2;
         } else if (e.touches.length === 1) {
-          // 單指觸控，準備移動校正點
+          // 單指觸控
           touchStartX = e.touches[0].clientX;
         }
         e.preventDefault();
-      }, { passive: false });
+      }, {passive: false});
       
       // 觸控移動
-      canvas.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2 && isGestureDetected) {
-          // 兩指手勢處理
-          const touch1 = e.touches[0];
-          const touch2 = e.touches[1];
-          const touchDistance = Math.hypot(
-            touch2.clientX - touch1.clientX,
-            touch2.clientY - touch1.clientY
-          );
+      canvas.addEventListener('touchmove', e => {
+        if (e.touches.length === 2 && gestureDetected) {
+          // 雙指手勢
+          const t1 = e.touches[0], t2 = e.touches[1];
+          const touchDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
           
           // 計算縮放比例
-          const scale = touchDistance / lastTouchDistance;
-          lastTouchDistance = touchDistance;
+          const scale = touchDist / lastTouchDist;
+          lastTouchDist = touchDist;
           
           // 計算中心點
-          const touchCenterX = (touch1.clientX + touch2.clientX) / 2;
-          const touchDeltaX = touchCenterX - touchStartX;
-          touchStartX = touchCenterX;
+          const touchX = (t1.clientX + t2.clientX) / 2;
+          const touchDX = touchX - touchStartX;
+          touchStartX = touchX;
           
-          // 應用縮放或平移到滑桿控件
+          // 應用操作
           if (Math.abs(scale - 1) > 0.05) {
-            // 縮放操作 - 調整開始和結束點的距離
-            const x1 = parseInt(xStartSlider.value);
-            const x2 = parseInt(xEndSlider.value);
+            // 縮放
+            const x1 = parseInt(elems.xStart.value);
+            const x2 = parseInt(elems.xEnd.value);
             const range = x2 - x1;
-            const midPoint = (x1 + x2) / 2;
+            const mid = (x1 + x2) / 2;
             
             const newRange = Math.max(10, Math.min(width - 1, range * scale));
-            const newX1 = Math.max(0, Math.round(midPoint - newRange / 2));
-            const newX2 = Math.min(width - 1, Math.round(midPoint + newRange / 2));
+            const newX1 = Math.max(0, Math.round(mid - newRange / 2));
+            const newX2 = Math.min(width - 1, Math.round(mid + newRange / 2));
             
-            xStartSlider.value = newX1;
-            xEndSlider.value = newX2;
+            elems.xStart.value = newX1;
+            elems.xEnd.value = newX2;
             syncSliderValues();
-          } else if (Math.abs(touchDeltaX) > 5) {
-            // 平移操作 - 保持範圍不變但移動位置
-            const x1 = parseInt(xStartSlider.value);
-            const x2 = parseInt(xEndSlider.value);
+          } else if (Math.abs(touchDX) > 5) {
+            // 平移
+            const x1 = parseInt(elems.xStart.value);
+            const x2 = parseInt(elems.xEnd.value);
             const range = x2 - x1;
             
-            // 將觸控移動轉換為像素移動
-            const pixelDelta = Math.round(touchDeltaX * width / canvas.clientWidth);
+            // 計算移動像素
+            const pixelDelta = Math.round(touchDX * width / canvas.clientWidth);
             
             if (Math.abs(pixelDelta) > 0) {
               let newX1 = x1 + pixelDelta;
               let newX2 = x2 + pixelDelta;
               
-              // 保證不超出邊界
+              // 邊界檢查
               if (newX1 < 0) {
                 newX1 = 0;
                 newX2 = range;
@@ -1231,297 +1043,113 @@
                 newX1 = newX2 - range;
               }
               
-              xStartSlider.value = newX1;
-              xEndSlider.value = newX2;
+              elems.xStart.value = newX1;
+              elems.xEnd.value = newX2;
               syncSliderValues();
             }
           }
-        } else if (e.touches.length === 1 && !isGestureDetected) {
-          // 單指移動 - 移動校正點
+        } else if (e.touches.length === 1 && !gestureDetected) {
+          // 單指移動
           const touch = e.touches[0];
-          const touchDeltaX = touch.clientX - touchStartX;
+          const touchDX = touch.clientX - touchStartX;
           touchStartX = touch.clientX;
           
-          // 將觸控移動轉換為像素移動
-          const pixelDelta = Math.round(touchDeltaX * width / canvas.clientWidth);
+          // 移動校正點
+          const pixelDelta = Math.round(touchDX * width / canvas.clientWidth);
           
           if (Math.abs(pixelDelta) > 0) {
-            const newPosition = parseInt(xCalibrateSlider.value) + pixelDelta;
-            xCalibrateSlider.value = Math.max(xCalibrateSlider.min, Math.min(xCalibrateSlider.max, newPosition));
+            const newPos = parseInt(elems.xCalibrate.value) + pixelDelta;
+            elems.xCalibrate.value = Math.max(elems.xCalibrate.min, Math.min(elems.xCalibrate.max, newPos));
             syncSliderValues();
             if (rawData) extractAndPlot();
           }
         }
         e.preventDefault();
-      }, { passive: false });
+      }, {passive: false});
       
       // 觸控結束
-      canvas.addEventListener('touchend', (e) => {
-        isGestureDetected = false;
+      canvas.addEventListener('touchend', e => {
+        gestureDetected = false;
         
-        // 如果之前是在拖放校正點並且還有激活的觸控，更新圖表
-        if (e.touches.length === 0 && rawData) {
-          extractAndPlot();
-        }
+        // 更新圖表
+        if (e.touches.length === 0 && rawData) extractAndPlot();
       });
       
       // 阻止縮放
-      canvas.addEventListener('gesturestart', (e) => {
-        e.preventDefault();
-      }, { passive: false });
+      canvas.addEventListener('gesturestart', e => e.preventDefault(), {passive: false});
     }
     
-    // 相機整合功能已移除
-    function setupCameraIntegration() {
-      // 此功能已停用
-    }
-    
-    // 事件監聽器
-    function setupEventListeners() {
-      // 檔案選擇按鈕
-      selectPhotoBtn.addEventListener('click', () => {
-        imgInput.click();
-      });
-      
-      // 檔案匯入事件 - 清空之前的值並重載新圖片
-      imgInput.addEventListener("change", e => {
+    // 初始化事件監聽
+    function setupEvents() {
+      // 檔案選擇
+      elems.imgInput.addEventListener("change", e => {
         if (e.target.files && e.target.files[0]) {
-          loadImageFromFile(e.target.files[0]);
-          
-          // 重置input值，這樣即使選擇相同檔案也會觸發change事件
-          e.target.value = '';
+          loadImage(e.target.files[0]);
+          e.target.value = ''; // 重置輸入
         }
       });
       
       // 滑桿事件
-      xStartSlider.addEventListener("input", syncSliderValues);
-      xEndSlider.addEventListener("input", syncSliderValues);
-      xCalibrateSlider.addEventListener("input", () => {
+      elems.xStart.addEventListener("input", syncSliderValues);
+      elems.xEnd.addEventListener("input", syncSliderValues);
+      elems.xCalibrate.addEventListener("input", () => {
         syncSliderValues();
         if (rawData) extractAndPlot();
       });
       
-      // 分析和校正按鈕
-      analyzeBtn.addEventListener("click", extractAndPlot);
-      addPointBtn.addEventListener("click", addCalibrationPoint);
-      generateRegressionBtn.addEventListener("click", generateRegression);
-      plotWavelengthBtn.addEventListener("click", plotWavelengthGraph);
-      toggleBackgroundBtn.addEventListener("click", toggleBackground);
+      // 按鈕事件
+      elems.analyzeBtn.addEventListener("click", extractAndPlot);
+      elems.addPointBtn.addEventListener("click", addCalibPoint);
+      elems.genRegressionBtn.addEventListener("click", generateRegression);
+      elems.plotWaveBtn.addEventListener("click", plotWavelengthGraph);
+      elems.toggleBgBtn.addEventListener("click", toggleBackground);
+      elems.exportBtn.addEventListener("click", exportParams);
       
-      // 波長輸入框按Enter確認
-      wavelengthInput.addEventListener("keydown", (e) => {
+      // 波長輸入回車
+      elems.wavelengthInput.addEventListener("keydown", e => {
         if (e.key === "Enter") {
           e.preventDefault();
-          addCalibrationPoint();
+          addCalibPoint();
         }
       });
       
-      // 監聽窗口大小變化
+      // 窗口調整大小
       window.addEventListener('resize', () => {
         if (img.complete && img.naturalWidth > 0) {
           setupCanvas();
-          requestAnimationFrame(drawWithRectangle);
+          requestAnimationFrame(drawWithRect);
         }
       });
       
-      // 禁用雙指縮放頁面
-      document.addEventListener('gesturestart', (e) => {
-        e.preventDefault();
-      }, { passive: false });
-      
-      document.addEventListener('gesturechange', (e) => {
-        e.preventDefault();
-      }, { passive: false });
-    }
-    
-    // 保存數據到本地存儲
-    function saveDataToLocalStorage() {
-      if (calibrationPoints.length > 0) {
-        localStorage.setItem('spectrumTool_calibrationPoints', JSON.stringify(calibrationPoints));
-      }
-      
-      if (calibration) {
-        localStorage.setItem('spectrumTool_calibration', JSON.stringify(calibration));
-      }
-    }
-    
-    // 從本地存儲加載數據
-    function loadDataFromLocalStorage() {
-      const savedCalibrationPoints = localStorage.getItem('spectrumTool_calibrationPoints');
-      if (savedCalibrationPoints) {
-        try {
-          calibrationPoints = JSON.parse(savedCalibrationPoints);
-          updateCalibrationTable();
-        } catch (e) {
-          console.error("無法載入校準點:", e);
-        }
-      }
-      
-      const savedCalibration = localStorage.getItem('spectrumTool_calibration');
-      if (savedCalibration) {
-        try {
-          calibration = JSON.parse(savedCalibration);
-          if (calibration && calibration.a && calibration.b) {
-            regressionConfirmed = true;
-            regressionResult.textContent = `λ = ${calibration.a.toFixed(4)} × x + ${calibration.b.toFixed(2)}`;
-          }
-        } catch (e) {
-          console.error("無法載入校準:", e);
-        }
-      }
+      // 禁用頁面縮放
+      document.addEventListener('gesturestart', e => e.preventDefault(), {passive: false});
+      document.addEventListener('gesturechange', e => e.preventDefault(), {passive: false});
     }
     
     // 初始化應用
-    function initApp() {
+    function init() {
+      // 設置畫布容器樣式
+      if (elems.canvasContainer) {
+        elems.canvasContainer.style.overflow = 'visible';
+        elems.canvasContainer.style.height = 'auto';
+        elems.canvasContainer.style.minHeight = '300px';
+        elems.canvasContainer.style.maxHeight = 'none';
+      }
+      
       setupCanvas();
-      setupEventListeners();
-      setupGestureEvents();
-      // 移除相機整合功能
-      // setupCameraIntegration();
+      setupEvents();
+      setupGestures();
+      updateButtonStates();
       
-      // 不從本地存儲加載數據，確保每次都是全新狀態
-      // loadDataFromLocalStorage();
-      
-      // 定期保存數據
-      setInterval(saveDataToLocalStorage, 30000); // 每30秒自動保存
-      
-      // 檢測是否為iPad
-      const isIpad = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      
-      if (isIpad) {
-        // 顯示添加到主屏幕提示
-        const isStandalone = window.navigator.standalone;
-        const hasShownPrompt = localStorage.getItem('hasShownHomeScreenPrompt');
-        
-        if (!isStandalone && !hasShownPrompt) {
-          setTimeout(() => {
-            showAddToHomeScreenPrompt();
-            localStorage.setItem('hasShownHomeScreenPrompt', 'true');
-          }, 3000);
-        }
-      }
-    }
-    
-    // 顯示添加到主屏幕提示
-    function showAddToHomeScreenPrompt() {
-      const promptContainer = document.createElement('div');
-      promptContainer.style.position = 'fixed';
-      promptContainer.style.bottom = '0';
-      promptContainer.style.left = '0';
-      promptContainer.style.right = '0';
-      promptContainer.style.backgroundColor = '#3b82f6';
-      promptContainer.style.color = 'white';
-      promptContainer.style.padding = '15px';
-      promptContainer.style.boxShadow = '0 -2px 10px rgba(0,0,0,0.2)';
-      promptContainer.style.zIndex = '9999';
-      promptContainer.style.display = 'flex';
-      promptContainer.style.alignItems = 'center';
-      promptContainer.style.justifyContent = 'space-between';
-      
-      const promptText = document.createElement('div');
-      promptText.innerHTML = '<strong>添加到主屏幕</strong><br>獲得更好的使用體驗';
-      
-      const promptActions = document.createElement('div');
-      promptActions.style.display = 'flex';
-      promptActions.style.gap = '10px';
-      
-      const dismissBtn = document.createElement('button');
-      dismissBtn.textContent = '稍後再說';
-      dismissBtn.classList.add('btn-outline');
-      dismissBtn.style.backgroundColor = 'transparent';
-      dismissBtn.style.color = 'white';
-      dismissBtn.style.border = '1px solid white';
-      
-      const addBtn = document.createElement('button');
-      addBtn.textContent = '如何添加';
-      addBtn.classList.add('btn-secondary');
-      
-      promptActions.appendChild(dismissBtn);
-      promptActions.appendChild(addBtn);
-      
-      promptContainer.appendChild(promptText);
-      promptContainer.appendChild(promptActions);
-      
-      document.body.appendChild(promptContainer);
-      
-      dismissBtn.addEventListener('click', () => {
-        document.body.removeChild(promptContainer);
-      });
-      
-      addBtn.addEventListener('click', () => {
-        const instructionsContainer = document.createElement('div');
-        instructionsContainer.style.position = 'fixed';
-        instructionsContainer.style.top = '0';
-        instructionsContainer.style.left = '0';
-        instructionsContainer.style.right = '0';
-        instructionsContainer.style.bottom = '0';
-        instructionsContainer.style.backgroundColor = 'rgba(0,0,0,0.8)';
-        instructionsContainer.style.zIndex = '10000';
-        instructionsContainer.style.display = 'flex';
-        instructionsContainer.style.flexDirection = 'column';
-        instructionsContainer.style.alignItems = 'center';
-        instructionsContainer.style.justifyContent = 'center';
-        instructionsContainer.style.padding = '20px';
-        
-        const instructions = document.createElement('div');
-        instructions.style.backgroundColor = 'white';
-        instructions.style.borderRadius = '12px';
-        instructions.style.padding = '20px';
-        instructions.style.maxWidth = '400px';
-        instructions.style.width = '100%';
-        instructions.style.textAlign = 'center';
-        
-        instructions.innerHTML = `
-          <h3 style="margin-top:0;">添加到主屏幕步驟</h3>
-          <p>1. 點擊Safari底部的<strong>分享按鈕</strong> <span style="font-size:24px;">⬆️</span></p>
-          <p>2. 在選項中找到並點擊<strong>添加到主屏幕</strong></p>
-          <p>3. 點擊<strong>添加</strong>確認</p>
-          <button id="closeInstructions" style="margin-top:15px;padding:10px 20px;background-color:#3b82f6;color:white;border:none;border-radius:8px;font-weight:500;">了解了</button>
-        `;
-        
-        instructionsContainer.appendChild(instructions);
-        document.body.appendChild(instructionsContainer);
-        
-        document.getElementById('closeInstructions').addEventListener('click', () => {
-          document.body.removeChild(instructionsContainer);
-          document.body.removeChild(promptContainer);
-        });
-      });
-    }
-    
-    // 檢查和處理離線模式
-    function setupOfflineSupport() {
-      window.addEventListener('online', () => {
-        showNotification('已恢復網絡連接', 'success');
-      });
-      
-      window.addEventListener('offline', () => {
-        showNotification('已進入離線模式', 'info');
-      });
-      
-      // 如果已經離線，顯示提示
-      if (!navigator.onLine) {
-        showNotification('當前處於離線模式', 'info');
-      }
-    }
-    
-    // 添加版本信息顯示
-    function showVersionInfo() {
+      // 顯示版本信息
       const versionDiv = document.createElement('div');
-      versionDiv.style.textAlign = 'center';
-      versionDiv.style.marginTop = '20px';
-      versionDiv.style.fontSize = '12px';
-      versionDiv.style.color = '#666';
-      versionDiv.innerHTML = '光譜分析工具 v1.1 - 每次匯入新照片時自動重置所有數據';
-      
+      versionDiv.style.cssText = 'text-align:center;margin-top:20px;font-size:12px;color:#666;';
+      versionDiv.innerHTML = '光譜分析工具 v1.7 - 效能優化';
       document.querySelector('.container').appendChild(versionDiv);
     }
     
-    // 初始化應用
-    setupOfflineSupport();
-    initApp();
-    showVersionInfo();
+    // 啟動應用
+    init();
   </script>
 </body>
 </html>

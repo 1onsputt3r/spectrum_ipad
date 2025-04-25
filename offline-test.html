@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>離線測試</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", sans-serif;
+      padding: 2em;
+      line-height: 1.6;
+      background: #f8f8f8;
+    }
+    h1 {
+      color: #333;
+    }
+    pre {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1em;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h1>📴 離線測試狀態</h1>
+  <pre id="status">檢查中...</pre>
+
+  <script>
+    async function checkStatus() {
+      let status = '';
+
+      // 1. 是否支援 Service Worker
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        if (registrations.length === 0) {
+          status += '❌ 沒有註冊任何 Service Worker。\n';
+        } else {
+          status += `✅ 找到 ${registrations.length} 個 Service Worker 註冊。\n`;
+        }
+      } else {
+        status += '❌ 這個瀏覽器不支援 Service Worker。\n';
+      }
+
+      // 2. 是否離線
+      if (!navigator.onLine) {
+        status += '📡 你目前「離線」。\n';
+      } else {
+        status += '🌐 你目前「連線中」。\n';
+      }
+
+      // 3. 嘗試從快取中載入資源
+      try {
+        const response = await fetch('script.js', {cache: 'only-if-cached', mode: 'same-origin'});
+        if (response.ok) {
+          status += '✅ 成功從快取讀取 script.js。';
+        } else {
+          status += '❌ 無法從快取讀取 script.js。';
+        }
+      } catch (e) {
+        status += '⚠️ 快取載入失敗（可能是快取未建立或 iOS 限制）。';
+      }
+
+      document.getElementById('status').innerText = status;
+    }
+
+    checkStatus();
+  </script>
+</body>
+</html>

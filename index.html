@@ -27,6 +27,24 @@
     max-width: 250px; /* 可選：限制最大寬度 */
     justify-content: center; /* 按鈕內容置中 */
   }
+  .pixel-adjust-buttons {
+    display: inline-flex;
+    margin-left: 10px;
+  }
+
+  .pixel-btn {
+    width: 30px;
+    height: 30px;
+    min-width: auto;
+    padding: 0;
+    margin: 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50%;
+  }
   </style>
   <!-- PWA 基本元標籤 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,6 +52,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
+  
   <!-- 引用 manifest.json -->
   <link rel="manifest" href="./manifest.json">
 
@@ -115,7 +134,13 @@
       <h2 class="section-title">波長校正</h2>
       
       <div class="slider-container">
-        <div class="slider-label">🎯 校正畫素 <span class="slider-value" id="xCalibrateVal">00050</span></div>
+        <div class="slider-label">
+          🎯 校正畫素 <span class="slider-value" id="xCalibrateVal">00050</span>
+          <div class="pixel-adjust-buttons">
+            <button id="decreasePixelBtn" class="pixel-btn">-</button>
+            <button id="increasePixelBtn" class="pixel-btn">+</button>
+          </div>
+        </div>
         <input type="range" id="xCalibrate" min="0" max="100" value="50" />
       </div>
       
@@ -1184,6 +1209,24 @@
       elems.toggleBgBtn.addEventListener("click", toggleBackground);
       elems.exportBtn.addEventListener("click", exportParams);
       
+      // 為像素調整按鈕添加事件監聽
+      document.getElementById('decreasePixelBtn').addEventListener('click', () => {
+        const calibrateEl = elems.xCalibrate;
+        const currentValue = parseInt(calibrateEl.value);
+        const newValue = Math.max(parseInt(calibrateEl.min), currentValue - 1);
+        calibrateEl.value = newValue;
+        syncSliderValues();
+        if (rawData) extractAndPlot();
+      });
+
+      document.getElementById('increasePixelBtn').addEventListener('click', () => {
+        const calibrateEl = elems.xCalibrate;
+        const currentValue = parseInt(calibrateEl.value);
+        const newValue = Math.min(parseInt(calibrateEl.max), currentValue + 1);
+        calibrateEl.value = newValue;
+        syncSliderValues();
+        if (rawData) extractAndPlot();
+      });
       // 波長輸入回車
       elems.wavelengthInput.addEventListener("keydown", e => {
         if (e.key === "Enter") {

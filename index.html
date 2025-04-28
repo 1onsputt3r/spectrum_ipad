@@ -675,8 +675,8 @@
           ],
           hovermode: 'closest',
           colorway: ['#3b82f6', '#ef4444', '#22c55e'],
-          plot_bgcolor: 'rgba(255,255,255,0)',
-          paper_bgcolor: 'rgba(255,255,255,0)'
+          plot_bgcolor: 'rgba(255,255,255)',
+          paper_bgcolor: 'rgba(255,255,255)'
         }, {
           displayModeBar: true,
           responsive: true,
@@ -863,8 +863,8 @@
         ],
         hovermode: 'closest',
         images: [],
-        plot_bgcolor: 'rgba(255,255,255,0)',
-        paper_bgcolor: 'rgba(255,255,255,0)'
+        plot_bgcolor: 'rgba(255,255,255)',
+        paper_bgcolor: 'rgba(255,255,255)'
       }, {
         displayModeBar: true,
         responsive: true,
@@ -1477,6 +1477,12 @@
       downloadBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
+          // 先暫時設定白色背景用於下載
+          Plotly.relayout(plotId, {
+            plot_bgcolor: 'rgb(255,255,255)',
+            paper_bgcolor: 'rgb(255,255,255)'
+          });
+          
           const dataUrl = await Plotly.toImage(plotId, {
             format: "png",
             height: 600,
